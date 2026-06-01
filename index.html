@@ -6,15 +6,15 @@
 <title>K-Stock</title>
 <style>
 body { margin:0; background:#fff;
-display:flex; align-items:center; justify-content:center;
-height:100vh; font-family:-apple-system,sans-serif; }
-.loading { text-align:center; color:#6b7280; font-size:14px; }
-.dot { width:8px; height:8px; border-radius:50%; background:#2563eb;
-display:inline-block; margin:0 3px;
-animation:bounce .8s infinite alternate; }
+  display:flex; align-items:center; justify-content:center;
+  height:100vh; font-family:'Inter',-apple-system,sans-serif; }
+.loading { text-align:center; color:#6b7280; font-size:13px; }
+.dot { width:7px; height:7px; border-radius:50%; background:#2563eb;
+  display:inline-block; margin:0 3px;
+  animation:bounce .8s infinite alternate; }
 .dot:nth-child(2){ animation-delay:.2s }
 .dot:nth-child(3){ animation-delay:.4s }
-@keyframes bounce{ to{ transform:translateY(-8px); opacity:.4 } }
+@keyframes bounce{ to{ transform:translateY(-7px); opacity:.3 } }
 </style>
 </head>
 <body>
@@ -24,15 +24,31 @@ animation:bounce .8s infinite alternate; }
   </div>
   K-Stock 로딩 중…
 </div>
+
 <script>
 (function() {
-  const params = new URLSearchParams(location.search);
-  const isGwp = params.get('gwp') === '1';
-  const hasCtx = !!params.get('ctx');
-  const isMobile = /Mobi|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i
-    .test(navigator.userAgent) || window.innerWidth < 768;
-  const target = (isGwp || hasCtx || isMobile) ? 'webapp.html' : 'desktop.html';
+
+  // ── GWP 파라미터 확인 (school index.html 동일) ──────────
+  var params = new URLSearchParams(location.search);
+  var isGwp  = params.get('gwp') === '1';
+  var hasCtx = !!params.get('ctx');
+
+  // ── 화면 크기 감지 ──────────────────────────────────────
+  // school: innerWidth < 768 → webapp
+  // stock:  innerWidth < 1024 → webapp  (대시보드가 있어 더 넓은 화면 필요)
+  var isMobile =
+    /Mobi|Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || window.innerWidth < 1024;
+
+  // ── 라우팅 결정 (school 패턴 동일) ─────────────────────
+  // 1) GWP 호출 → webapp (고팡 앱은 모바일 기준)
+  // 2) 모바일·태블릿 → webapp
+  // 3) PC (1024px 이상) → desktop
+  var target = (isGwp || hasCtx || isMobile) ? 'webapp.html' : 'desktop.html';
+
+  // 현재 파라미터 유지하며 이동
   location.replace(target + (location.search || ''));
+
 })();
 </script>
 </body>

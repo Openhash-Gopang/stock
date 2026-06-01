@@ -10,217 +10,384 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
-
+/* ══ 리셋 ══ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{
   height:100%;height:100dvh;
   overflow:hidden;
   font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;
-  font-size:15px;
-  background:#f2f2f7;
-  color:#1c1c1e;
+  font-size:14px;
   -webkit-font-smoothing:antialiased;
 }
 
+/* ══ Supabase 라이트 팔레트 그대로 ══ */
 :root{
-  --brand:   #2563eb;
-  --brand-dk:#1d4ed8;
-  --bg:      #f2f2f7;
-  --surface: #ffffff;
-  --sep:     #e5e5ea;
-  --txt2:    #8e8e93;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
+  --bg:       #ffffff;
+  --bg-sub:   #f8f9fa;
+  --bg-hover: #f0f2f5;
+  --icon-bar: #1c1c1c;
+
+  --brand:    #2563eb;
+  --brand-dk: #1d4ed8;
+  --brand-lt: #eff6ff;
+  --brand-bd: #bfdbfe;
+
+  --green:    #3ecf8e;   /* Supabase Insert green */
+
+  --txt-1:    #1c1c1c;
+  --txt-2:    #6b7280;
+  --txt-3:    #9ca3af;
+
+  --border:   #e5e7eb;
+  --sep:      #e5e5ea;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+
+  --r:  6px;
+  --rl: 14px;
 }
 
-#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+/* ══ 앱 레이아웃 ══ */
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;background:var(--bg-sub)}
 
-/* ══ 상단 바 ══ */
+/* ══════════════════════════════════════
+   상단 바 — Supabase 스타일
+   배경 #ffffff, border-bottom #e5e7eb
+   높이 44px (전역바와 동일)
+   ══════════════════════════════════════ */
 .topbar{
   display:flex;align-items:center;
-  padding:calc(var(--safe-top)+10px) 16px 10px;
-  background:var(--surface);
-  border-bottom:.5px solid var(--sep);
-  gap:10px;flex-shrink:0;min-height:52px;
-}
-.back-btn{
-  background:none;border:none;
-  color:var(--brand);font-size:16px;font-weight:400;
-  cursor:pointer;padding:4px 0;
-  display:flex;align-items:center;gap:4px;
-  flex-shrink:0;white-space:nowrap;
-}
-.back-btn svg{width:10px;height:16px;stroke:var(--brand);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.topbar-center{flex:1;text-align:center;overflow:hidden}
-.topbar-title{font-size:16px;font-weight:600;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.topbar-sub{font-size:11px;color:var(--txt2);margin-top:1px}
-.auth-badge{
-  background:#eff6ff;color:var(--brand);
-  border-radius:10px;padding:3px 8px;
-  font-size:11px;font-weight:600;flex-shrink:0;
+  padding:calc(var(--safe-top) + 8px) 14px 8px;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  gap:10px;flex-shrink:0;min-height:50px;
 }
 
-/* ══ 채팅 ══ */
+/* 뒤로 버튼 — Supabase 좌측 breadcrumb 스타일 */
+.back-btn{
+  display:flex;align-items:center;gap:4px;
+  padding:4px 8px;border-radius:var(--r);
+  background:var(--bg-sub);border:1px solid var(--border);
+  color:var(--txt-2);font-size:12px;font-weight:500;
+  cursor:pointer;background:none;border:none;
+  transition:color .1s;
+}
+.back-btn:hover{color:var(--brand)}
+.back-btn svg{width:10px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* 브레드크럼 구분자 */
+.tb-sep{color:var(--txt-3);font-size:13px}
+
+/* 타이틀 영역 */
+.topbar-center{flex:1;overflow:hidden}
+.topbar-title{
+  font-size:13px;font-weight:600;color:var(--txt-1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.topbar-sub{font-size:11px;color:var(--txt-3);margin-top:1px}
+
+/* 레벨 배지 — Supabase badge 스타일 */
+.level-badge{
+  padding:2px 7px;border-radius:3px;
+  font-size:10px;font-weight:600;
+  background:var(--brand-lt);color:var(--brand);
+  border:1px solid var(--brand-bd);
+  flex-shrink:0;
+}
+
+/* ══════════════════════════════════════
+   채팅 메시지 영역
+   배경 #f8f9fa (Supabase bg-subtle)
+   ══════════════════════════════════════ */
 #chat-body{
   flex:1;overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  padding:12px 16px 8px;
-  display:flex;flex-direction:column;gap:8px;
-  background:var(--bg);
+  padding:12px 14px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  background:var(--bg-sub);
 }
-.date-divider{text-align:center;font-size:12px;color:var(--txt2);padding:4px 0 8px}
+#chat-body::-webkit-scrollbar{width:3px}
+#chat-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* 날짜 구분선 */
+.date-div{
+  text-align:center;font-size:11px;color:var(--txt-3);
+  padding:4px 0 6px;
+  display:flex;align-items:center;gap:8px;
+}
+.date-div::before,.date-div::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* AI 버블 — Supabase 카드 스타일 (#ffffff, border) */
 .bubble-ai{
   display:flex;align-items:flex-end;gap:8px;
   max-width:88%;align-self:flex-start;
 }
 .ai-avatar{
-  width:28px;height:28px;border-radius:50%;
-  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  width:26px;height:26px;border-radius:50%;
+  background:var(--brand);
   display:flex;align-items:center;justify-content:center;
-  font-size:14px;flex-shrink:0;
+  flex-shrink:0;
 }
-.ai-avatar svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.bubble-ai-text{
-  background:var(--surface);
-  border-radius:18px 18px 18px 4px;
-  padding:10px 14px;font-size:15px;line-height:1.5;
-  color:#1c1c1e;
-  box-shadow:0 1px 2px rgba(0,0,0,.06);
+.ai-avatar svg{width:13px;height:13px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ai-text{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:4px 14px 14px 14px;
+  padding:9px 12px;
+  font-size:13px;line-height:1.55;color:var(--txt-1);
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
   word-break:break-word;
 }
-.bubble-ai-text b{font-weight:600}
-.bubble-ai-time{font-size:10px;color:var(--txt2);margin-top:2px;padding-left:36px}
+.ai-text b{font-weight:600}
+.ai-text code{
+  background:var(--bg-sub);border:1px solid var(--border);
+  border-radius:3px;padding:1px 4px;font-size:11px;
+}
+.ai-time{font-size:10px;color:var(--txt-3);margin-top:2px;padding-left:34px}
+
+/* 사용자 버블 */
 .bubble-user{
-  display:flex;flex-direction:column;
-  align-items:flex-end;
+  display:flex;flex-direction:column;align-items:flex-end;
   max-width:88%;align-self:flex-end;
 }
-.bubble-user-text{
-  background:var(--brand);
-  border-radius:18px 18px 4px 18px;
-  padding:10px 14px;font-size:15px;line-height:1.5;color:#fff;word-break:break-word;
+.user-text{
+  background:var(--brand);color:#fff;
+  border-radius:14px 14px 4px 14px;
+  padding:9px 12px;font-size:13px;line-height:1.55;
+  word-break:break-word;
 }
-.bubble-user-time{font-size:10px;color:var(--txt2);margin-top:2px;text-align:right}
-.typing{display:flex;align-items:flex-end;gap:8px;align-self:flex-start}
+.user-time{font-size:10px;color:var(--txt-3);margin-top:2px;text-align:right}
+
+/* 타이핑 인디케이터 */
+.typing-wrap{display:flex;align-items:flex-end;gap:8px;align-self:flex-start}
 .typing-dots{
-  background:var(--surface);border-radius:18px;
-  padding:12px 16px;display:flex;gap:5px;
-  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:14px;padding:10px 14px;
+  display:flex;gap:4px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
-.typing-dots span{width:7px;height:7px;border-radius:50%;background:#c7c7cc;animation:typingDot 1.2s infinite}
+.typing-dots span{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--txt-3);animation:typDot 1.2s infinite;
+}
 .typing-dots span:nth-child(2){animation-delay:.2s}
 .typing-dots span:nth-child(3){animation-delay:.4s}
-@keyframes typingDot{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-6px);opacity:1}}
+@keyframes typDot{0%,60%,100%{transform:none;opacity:.4}30%{transform:translateY(-5px);opacity:1}}
 
-/* ══ 완료 배너 ══ */
+/* 세션 요약 카드 */
+.session-card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:10px;padding:12px 14px;
+  margin:4px 0;align-self:center;width:88%;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+.session-card-title{
+  font-size:10px;font-weight:600;color:var(--txt-3);
+  text-transform:uppercase;letter-spacing:.5px;
+  margin-bottom:8px;text-align:center;
+}
+.sc-row{
+  display:flex;justify-content:space-between;
+  font-size:12px;padding:4px 0;
+  border-bottom:1px solid var(--border);
+}
+.sc-row:last-child{border-bottom:none}
+.sc-row span:last-child{font-weight:600;color:var(--brand)}
+
+/* ══════════════════════════════════════
+   완료 배너 — Supabase 알림 카드 스타일
+   ══════════════════════════════════════ */
 .complete-banner{
   display:none;
-  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
-  border:1px solid #bfdbfe;border-radius:14px;
-  margin:8px 16px;padding:14px 16px;flex-shrink:0;
+  margin:6px 14px;padding:12px 14px;
+  background:var(--brand-lt);border:1px solid var(--brand-bd);
+  border-radius:10px;flex-shrink:0;
 }
 .complete-banner.show{display:block}
-.complete-banner h4{font-size:14px;font-weight:700;color:var(--brand);margin-bottom:4px}
-.complete-banner p{font-size:12px;color:#374151;line-height:1.5;margin-bottom:12px}
-.complete-btns{display:flex;gap:8px}
-.btn-return{
-  flex:1;padding:10px;
-  background:var(--brand);color:#fff;
-  border:none;border-radius:10px;font-size:14px;font-weight:700;
-  cursor:pointer;text-align:center;transition:background .15s;
+.cb-title{font-size:12px;font-weight:600;color:var(--brand);margin-bottom:3px}
+.cb-body{font-size:11px;color:var(--txt-2);line-height:1.5;margin-bottom:10px}
+.cb-btns{display:flex;gap:8px}
+.cb-btn-primary{
+  flex:1;padding:8px;border-radius:var(--r);
+  background:var(--green);color:#fff;border:none;
+  font-size:12px;font-weight:600;cursor:pointer;text-align:center;
+  transition:background .12s;
 }
-.btn-return:hover{background:var(--brand-dk)}
-.btn-continue{
-  flex:1;padding:10px;
-  background:var(--surface);color:#374151;
-  border:1px solid var(--sep);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;
+.cb-btn-primary:hover{background:#2db87a}
+.cb-btn-ghost{
+  flex:1;padding:8px;border-radius:var(--r);
+  background:var(--bg);color:var(--txt-2);
+  border:1px solid var(--border);font-size:12px;cursor:pointer;text-align:center;
 }
 
-/* ══ 빠른 질문 칩 ══ */
+/* ══════════════════════════════════════
+   빠른 질문 칩 — Supabase filter-chip 스타일
+   ══════════════════════════════════════ */
 .quick-chips{
-  display:flex;gap:8px;
-  padding:6px 16px 8px;
+  display:flex;gap:6px;
+  padding:6px 14px 8px;
   overflow-x:auto;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none;flex-shrink:0;background:var(--bg);
+  scrollbar-width:none;flex-shrink:0;
+  background:var(--bg-sub);
 }
 .quick-chips::-webkit-scrollbar{display:none}
 .chip{
-  background:var(--surface);border:1px solid var(--sep);
-  border-radius:16px;padding:6px 14px;
-  font-size:13px;color:var(--brand);
+  display:flex;align-items:center;gap:4px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:var(--r);padding:4px 10px;
+  font-size:11px;font-weight:500;color:var(--txt-2);
   white-space:nowrap;cursor:pointer;flex-shrink:0;
-  transition:background .12s;
+  transition:background .08s,color .08s,border-color .08s;
 }
-.chip:hover,.chip:active{background:#eff6ff}
+.chip:hover,.chip:active{background:var(--bg-hover);color:var(--brand);border-color:var(--brand-bd)}
 
-/* ══ 입력 영역 ══ */
+/* ══════════════════════════════════════
+   입력 영역 — Supabase filter-bar 스타일
+   배경 #ffffff, border-top
+   ══════════════════════════════════════ */
 .input-area{
-  background:var(--surface);border-top:.5px solid var(--sep);
+  background:var(--bg);
+  border-top:1px solid var(--border);
   padding:8px 12px calc(8px + var(--safe-bot));
   display:flex;align-items:flex-end;gap:8px;flex-shrink:0;
 }
 .input-wrap{
-  flex:1;background:var(--bg);border:1px solid var(--sep);
-  border-radius:20px;display:flex;align-items:flex-end;
-  padding:6px 12px;transition:border-color .15s;
+  flex:1;
+  background:var(--bg-sub);
+  border:1px solid var(--border);
+  border-radius:10px;
+  display:flex;align-items:flex-end;padding:6px 10px;
+  transition:border-color .12s;
 }
-.input-wrap:focus-within{border-color:var(--brand)}
+.input-wrap:focus-within{border-color:var(--brand);background:var(--bg)}
 #msg-input{
   flex:1;background:none;border:none;outline:none;
-  font-family:'Inter',sans-serif;font-size:15px;color:#1c1c1e;
+  font-family:'Inter',sans-serif;font-size:13px;color:var(--txt-1);
   resize:none;max-height:100px;line-height:1.4;
 }
-#msg-input::placeholder{color:#c7c7cc}
+#msg-input::placeholder{color:var(--txt-3)}
+
+/* 미디어 버튼 (마이크/카메라/파일) */
+.media-btns{
+  display:flex;align-items:center;gap:1px;
+  padding:0 4px 0 0;
+  flex-shrink:0;
+}
+.media-btn{
+  width:32px;height:32px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:var(--r);
+  color:var(--txt-3);background:none;border:none;
+  cursor:pointer;transition:background .1s,color .1s;
+  flex-shrink:0;
+}
+.media-btn:hover{background:var(--bg-hover);color:var(--txt-1)}
+.media-btn.active{color:var(--brand)}
+.media-btn.recording{color:var(--red,#ef4444);animation:recPulse 1s infinite}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.media-btn svg{
+  width:18px;height:18px;
+  stroke:currentColor;stroke-width:1.8;
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+}
+/* 숨겨진 파일 인풋 */
+#file-input{display:none}
+/* 첨부 파일 미리보기 */
+.attach-preview{
+  display:none;
+  padding:6px 14px;gap:8px;
+  flex-wrap:wrap;flex-shrink:0;
+  background:var(--bg);border-top:1px solid var(--border);
+}
+.attach-preview.show{display:flex}
+.attach-chip{
+  display:flex;align-items:center;gap:5px;
+  background:var(--bg-sub);border:1px solid var(--border);
+  border-radius:var(--r);padding:4px 8px;
+  font-size:11px;color:var(--txt-2);max-width:180px;
+}
+.attach-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.attach-chip-img{width:32px;height:32px;object-fit:cover;border-radius:3px;flex-shrink:0}
+.attach-remove{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--txt-3);color:#fff;border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:10px;flex-shrink:0;line-height:1;
+  transition:background .1s;
+}
+.attach-remove:hover{background:var(--txt-1)}
+/* 음성 녹음 상태 바 */
+.rec-bar{
+  display:none;
+  align-items:center;gap:10px;
+  padding:6px 14px;flex-shrink:0;
+  background:var(--bg);border-top:1px solid var(--border);
+}
+.rec-bar.show{display:flex}
+.rec-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;animation:recPulse 1s infinite;flex-shrink:0}
+.rec-time{font-size:12px;font-weight:600;color:var(--txt-1);min-width:36px}
+.rec-wave{flex:1;height:24px;position:relative;overflow:hidden}
+.rec-wave canvas{position:absolute;inset:0;width:100%;height:100%}
+.rec-cancel{
+  padding:4px 10px;border-radius:var(--r);
+  background:none;border:1px solid var(--border);
+  font-size:11px;color:var(--txt-2);cursor:pointer;flex-shrink:0;
+}
+.rec-cancel:hover{background:var(--bg-hover)}
+
+/* 전송 버튼 — Supabase Insert green */
 .send-btn{
-  width:36px;height:36px;border-radius:50%;
-  background:var(--brand);border:none;
+  width:34px;height:34px;border-radius:50%;
+  background:var(--green);border:none;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;
-  transition:background .15s,opacity .15s;
+  transition:background .12s;
 }
-.send-btn:disabled{background:#c7c7cc;cursor:not-allowed}
-.send-btn svg{width:16px;height:16px;fill:#fff}
+.send-btn:hover{background:#2db87a}
+.send-btn:disabled{background:var(--border);cursor:not-allowed}
+.send-btn svg{width:14px;height:14px;fill:#fff}
 
 /* ══ 로딩 ══ */
 #auth-loading{
   position:fixed;inset:0;z-index:9999;
-  background:var(--surface);
+  background:var(--bg);
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:14px;
 }
 .spinner{
-  width:28px;height:28px;
-  border:3px solid #e5e5ea;border-top-color:var(--brand);
+  width:24px;height:24px;
+  border:2px solid var(--border);border-top-color:var(--brand);
   border-radius:50%;animation:spin .7s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:12px;color:var(--txt-3)}
 
-/* ══ 세션 요약 ══ */
-.session-stats{
-  background:var(--surface);border-radius:14px;
-  padding:14px 16px;margin:4px 0;
-  align-self:center;width:85%;
-  box-shadow:0 1px 3px rgba(0,0,0,.08);
+/* ══ 투자 경고 배너 (최초 1회) ══ */
+.disclaimer{
+  margin:0 14px 6px;padding:8px 12px;
+  background:var(--bg-sub);border:1px solid var(--border);
+  border-radius:var(--r);flex-shrink:0;
+  display:flex;align-items:flex-start;gap:8px;
 }
-.session-stats h5{
-  font-size:12px;font-weight:600;
-  color:var(--txt2);margin-bottom:10px;
-  text-align:center;text-transform:uppercase;letter-spacing:.5px;
-}
-.stat-row{
-  display:flex;justify-content:space-between;
-  font-size:13px;padding:3px 0;
-  border-bottom:.5px solid var(--sep);
-}
-.stat-row:last-child{border-bottom:none}
-.stat-row span:last-child{font-weight:600;color:var(--brand)}
+.disclaimer svg{width:13px;height:13px;stroke:#92400e;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px}
+.disclaimer p{font-size:11px;color:var(--txt-2);line-height:1.5}
 </style>
 </head>
 <body>
 
+<!-- 로딩 -->
 <div id="auth-loading">
   <div class="spinner"></div>
-  <div style="font-size:14px;color:var(--txt2)">K-Stock 로딩 중…</div>
+  <div class="loading-text">K-Stock 로딩 중…</div>
+</div>
+
+<!-- 인증 모달 (school/auth.js showAuthPanel 연동) -->
+<div id="auth-modal" onclick="if(event.target===this)closeAuthModal()"
+  style="position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.4);align-items:flex-end;justify-content:center;display:none">
+  <div style="background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));animation:slideUp .25s ease">
+    <div id="auth-modal-content"></div>
+  </div>
 </div>
 
 <div id="app" style="display:none">
@@ -229,42 +396,91 @@ html,body{
   <div class="topbar">
     <button class="back-btn" onclick="goBack()">
       <svg viewBox="0 0 10 16"><polyline points="9 1 1 8 9 15"/></svg>
-      고팡
     </button>
+    <span class="tb-sep">/</span>
+    <span style="font-size:12px;color:var(--txt-2)">고팡</span>
+    <span class="tb-sep">/</span>
     <div class="topbar-center">
       <div class="topbar-title">AI 자산관리 전문가</div>
       <div class="topbar-sub" id="topbar-sub">K-Stock · 24시간 전담 전문가</div>
     </div>
-    <span class="auth-badge" id="auth-badge">L0</span>
+    <span class="level-badge" id="level-badge">L0</span>
   </div>
 
-  <!-- 채팅 -->
+  <!-- 채팅 영역 -->
   <div id="chat-body"></div>
 
   <!-- 빠른 질문 칩 -->
   <div class="quick-chips" id="quick-chips">
-    <div class="chip" onclick="quickSend('오늘 시장 브리핑 해주세요')">오늘 시장 브리핑</div>
-    <div class="chip" onclick="quickSend('제 포트폴리오를 점검해 주세요')">포트폴리오 점검</div>
-    <div class="chip" onclick="quickSend('리밸런싱이 필요한가요?')">리밸런싱 제안</div>
-    <div class="chip" onclick="quickSend('절세 전략을 알려주세요')">절세 전략</div>
-    <div class="chip" onclick="quickSend('재무 목표를 수정하고 싶습니다')">목표 재설정</div>
+    <div class="chip" onclick="quickSend('오늘 시장 브리핑 해주세요')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      오늘 시장 브리핑
+    </div>
+    <div class="chip" onclick="quickSend('제 포트폴리오를 점검해 주세요')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      포트폴리오 점검
+    </div>
+    <div class="chip" onclick="quickSend('리밸런싱이 필요한가요?')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      리밸런싱 제안
+    </div>
+    <div class="chip" onclick="quickSend('절세 전략을 알려주세요')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      절세 전략
+    </div>
+    <div class="chip" onclick="quickSend('재무 목표를 다시 설정하고 싶습니다')">
+      <svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      목표 재설정
+    </div>
   </div>
 
   <!-- 완료 배너 -->
   <div class="complete-banner" id="complete-banner">
-    <h4>✅ 상담 완료</h4>
-    <p id="complete-summary">상담 내용이 고팡 PDV에 기록됩니다.</p>
-    <div class="complete-btns">
-      <button class="btn-return" onclick="finishAndReturn()">고팡으로 돌아가기</button>
-      <button class="btn-continue" onclick="hideBanner()">계속 상담하기</button>
+    <div class="cb-title">상담 완료</div>
+    <div class="cb-body" id="cb-body">상담 내용이 고팡 PDV에 기록됩니다.</div>
+    <div class="cb-btns">
+      <button class="cb-btn-primary" onclick="finishAndReturn()">고팡으로 돌아가기</button>
+      <button class="cb-btn-ghost" onclick="hideBanner()">계속 상담하기</button>
     </div>
   </div>
 
-  <!-- 입력 -->
+  <!-- 첨부 파일 미리보기 -->
+  <div class="attach-preview" id="attach-preview"></div>
+
+  <!-- 음성 녹음 상태 바 -->
+  <div class="rec-bar" id="rec-bar">
+    <div class="rec-dot"></div>
+    <span class="rec-time" id="rec-time">0:00</span>
+    <div class="rec-wave"><canvas id="rec-canvas"></canvas></div>
+    <button class="rec-cancel" onclick="cancelRecording()">취소</button>
+  </div>
+
+  <!-- 입력 영역 -->
   <div class="input-area">
-    <div class="input-wrap">
-      <textarea id="msg-input" rows="1" placeholder="포트폴리오, 절세, 리밸런싱… 무엇이든 물어보세요"></textarea>
+    <!-- 미디어 버튼: 마이크, 카메라, 파일 -->
+    <div class="media-btns">
+      <button class="media-btn" id="mic-btn" title="음성 입력" onclick="toggleMic()">
+        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <button class="media-btn" id="cam-btn" title="카메라" onclick="triggerCamera()">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <button class="media-btn" id="file-btn" title="파일 첨부" onclick="triggerFile()">
+        <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
     </div>
+    <!-- 숨겨진 파일 인풋들 -->
+    <input type="file" id="file-input" multiple
+      accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.csv,.txt"
+      onchange="handleFiles(this.files)">
+    <input type="file" id="camera-input" accept="image/*" capture="environment"
+      onchange="handleFiles(this.files)" style="display:none">
+    <!-- 텍스트 입력 -->
+    <div class="input-wrap">
+      <textarea id="msg-input" rows="1"
+        placeholder="포트폴리오, 절세, 리밸런싱… 무엇이든 물어보세요"></textarea>
+    </div>
+    <!-- 전송 버튼 -->
     <button class="send-btn" id="send-btn" disabled>
       <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
     </button>
@@ -273,6 +489,8 @@ html,body{
 </div>
 
 <script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/report.js"></script>
 <script>
 // ── 상태 ──────────────────────────────────────────────────
 let _chatHistory = [];
@@ -281,7 +499,7 @@ let _sessionStart = new Date();
 let _sessionMsgCnt = 0;
 let _gwpOrigin = null;
 let _gwpContext = null;
-let _user = null;
+// _user는 auth.js에서 관리 (school 패턴 동일)
 
 const _params = new URLSearchParams(location.search);
 const _isGwp  = _params.get('gwp') === '1';
@@ -289,39 +507,42 @@ _gwpOrigin = _params.get('origin') || 'https://gopang.net';
 try { _gwpContext = _params.get('ctx') ? decodeURIComponent(_params.get('ctx')) : null; }
 catch { _gwpContext = null; }
 
-// ── 시간 포맷 ──────────────────────────────────────────────
+// ── 시간 포맷 ─────────────────────────────────────────────
 function fmtTime(d) {
-  return d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:true});
+  return d.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit', hour12:true});
 }
 
-// ── 마크다운 → HTML ────────────────────────────────────────
-function mdToHtml(s) {
+// ── 마크다운 → HTML ───────────────────────────────────────
+function md(s) {
   return s
-    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
-    .replace(/\*(.*?)\*/g,'<i>$1</i>')
-    .replace(/`(.*?)`/g,'<code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:13px">$1</code>')
-    .replace(/\n/g,'<br>');
+    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+    .replace(/\*(.*?)\*/g, '<i>$1</i>')
+    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
 }
-function escHtml(s) {
+function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── 메시지 렌더링 ──────────────────────────────────────────
+// ── 메시지 렌더 ───────────────────────────────────────────
 function appendAI(text) {
   const body = document.getElementById('chat-body');
+
   const wrap = document.createElement('div');
   wrap.className = 'bubble-ai';
   wrap.innerHTML = `
     <div class="ai-avatar">
       <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
     </div>
-    <div class="bubble-ai-text">${mdToHtml(text)}</div>
+    <div class="ai-text">${md(text)}</div>
   `;
   body.appendChild(wrap);
+
   const timeEl = document.createElement('div');
-  timeEl.className = 'bubble-ai-time';
+  timeEl.className = 'ai-time';
   timeEl.textContent = fmtTime(new Date());
   body.appendChild(timeEl);
+
   scrollBottom();
 }
 
@@ -330,8 +551,8 @@ function appendUser(text) {
   const wrap = document.createElement('div');
   wrap.className = 'bubble-user';
   wrap.innerHTML = `
-    <div class="bubble-user-text">${escHtml(text)}</div>
-    <div class="bubble-user-time">${fmtTime(new Date())}</div>
+    <div class="user-text">${esc(text)}</div>
+    <div class="user-time">${fmtTime(new Date())}</div>
   `;
   body.appendChild(wrap);
   scrollBottom();
@@ -340,7 +561,7 @@ function appendUser(text) {
 function showTyping() {
   const body = document.getElementById('chat-body');
   const el = document.createElement('div');
-  el.className = 'typing';el.id = 'typing-indicator';
+  el.className = 'typing-wrap'; el.id = 'typing';
   el.innerHTML = `
     <div class="ai-avatar">
       <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
@@ -351,33 +572,30 @@ function showTyping() {
   scrollBottom();
   return el;
 }
-function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+function removeTyping() { document.getElementById('typing')?.remove(); }
+
 function scrollBottom() {
   const b = document.getElementById('chat-body');
   setTimeout(() => b.scrollTop = b.scrollHeight, 50);
 }
 
-// ── 시스템 프롬프트 ────────────────────────────────────────
-async function loadSystemPrompt() {
+// ── 시스템 프롬프트 ───────────────────────────────────────
+async function loadPrompt() {
   if (_systemPrompt) return _systemPrompt;
   try {
     const r = await fetch('prompts/system_prompt.txt');
     _systemPrompt = await r.text();
   } catch {
-    _systemPrompt = '당신은 K-Stock AI 자산관리 전문가입니다. 주식·ETF·채권 등 89개 자산군을 분석하며, 담당 고객 한 명을 전담합니다. 투자 권유가 아닌 정보 제공임을 항상 명시하세요. 답변은 간결하게 유지하세요.';
+    _systemPrompt = '당신은 K-Stock AI 자산관리 전문가입니다. 주식·ETF·채권 등 89개 자산군을 분석하며 고객 한 명을 전담합니다. 투자 권유가 아닌 정보 제공임을 항상 명시하세요. 답변은 간결하게 유지하세요.';
   }
   return _systemPrompt;
 }
 
-// ── DeepSeek API ───────────────────────────────────────────
+// ── DeepSeek API ──────────────────────────────────────────
 async function callAI(userMsg) {
   const cfg = window.KSTOCK_CONFIG || {};
-  const sysPrompt = await loadSystemPrompt();
+  const sysPrompt = await loadPrompt();
   _chatHistory.push({ role: 'user', content: userMsg });
-  const messages = [
-    { role: 'system', content: sysPrompt },
-    ..._chatHistory,
-  ];
   const res = await fetch(cfg.deepseekEndpoint || 'https://gopang-proxy.tensor-city.workers.dev/deepseek', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -385,7 +603,7 @@ async function callAI(userMsg) {
       model: cfg.model || 'deepseek-chat',
       max_tokens: cfg.maxTokens || 800,
       temperature: cfg.temperature || 0.5,
-      messages,
+      messages: [{ role: 'system', content: sysPrompt }, ..._chatHistory],
     }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -395,7 +613,7 @@ async function callAI(userMsg) {
   return reply;
 }
 
-// ── 메시지 전송 ────────────────────────────────────────────
+// ── 메시지 전송 ───────────────────────────────────────────
 async function sendMessage(text) {
   if (!text.trim()) return;
   document.getElementById('quick-chips').style.display = 'none';
@@ -404,7 +622,7 @@ async function sendMessage(text) {
   document.getElementById('msg-input').value = '';
   document.getElementById('msg-input').style.height = 'auto';
   document.getElementById('send-btn').disabled = true;
-  const typingEl = showTyping();
+  const typEl = showTyping();
   try {
     const reply = await callAI(text);
     removeTyping();
@@ -417,30 +635,31 @@ async function sendMessage(text) {
   document.getElementById('send-btn').disabled = false;
 }
 
-function quickSend(text) { sendMessage(text); }
+function quickSend(text) { sendMessageWithAttach(text); }
 
-// ── 입력 이벤트 ────────────────────────────────────────────
+// ── 입력 이벤트 ───────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const inp = document.getElementById('msg-input');
-  const sendBtn = document.getElementById('send-btn');
+  const btn = document.getElementById('send-btn');
   inp.addEventListener('input', () => {
     inp.style.height = 'auto';
     inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
-    sendBtn.disabled = !inp.value.trim();
+    updateSendBtn();
   });
   inp.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!sendBtn.disabled) sendMessage(inp.value.trim());
+      if (!document.getElementById('send-btn').disabled)
+        sendMessageWithAttach(inp.value.trim());
     }
   });
-  sendBtn.addEventListener('click', () => sendMessage(inp.value.trim()));
+  btn.addEventListener('click', () => sendMessageWithAttach(inp.value.trim()));
 });
 
-// ── 완료 배너 ──────────────────────────────────────────────
+// ── 완료 배너 ─────────────────────────────────────────────
 function suggestComplete() {
   const mins = Math.round((new Date() - _sessionStart) / 60000);
-  document.getElementById('complete-summary').textContent =
+  document.getElementById('cb-body').textContent =
     `${mins}분 동안 ${_sessionMsgCnt}회 상담 — 고팡 PDV에 자산관리 기록을 전송하시겠습니까?`;
   document.getElementById('complete-banner').classList.add('show');
   scrollBottom();
@@ -449,16 +668,16 @@ function hideBanner() {
   document.getElementById('complete-banner').classList.remove('show');
 }
 
-// ── 자산 키워드 추출 ───────────────────────────────────────
+// ── 자산 키워드 추출 ──────────────────────────────────────
 function extractAssets() {
-  const userMsgs = _chatHistory.filter(m => m.role==='user').map(m => m.content).join(' ');
-  const keywords = ['주식','ETF','채권','리츠','부동산','비트코인','금','원자재',
+  const msgs = _chatHistory.filter(m => m.role === 'user').map(m => m.content).join(' ');
+  const kw = ['주식','ETF','채권','리츠','부동산','비트코인','금','원자재',
     '달러','환율','절세','IRP','ISA','연금','배당','공모주','사모펀드','리밸런싱'];
-  const found = keywords.filter(k => userMsgs.includes(k));
-  return found.length > 0 ? found.slice(0,5).join('·') : '종합 자산관리';
+  const found = kw.filter(k => msgs.includes(k));
+  return found.length > 0 ? found.slice(0, 5).join('·') : '종합 자산관리';
 }
 
-// ── PDV 전송 ───────────────────────────────────────────────
+// ── PDV 전송 ──────────────────────────────────────────────
 async function sendPDVReport() {
   const cfg = window.KSTOCK_CONFIG || {};
   const mins = Math.round((new Date() - _sessionStart) / 60000);
@@ -468,65 +687,55 @@ async function sendPDVReport() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        svc: 'stock',
-        type: 'stock_session_complete',
-        who:  _user?.ipv6 || 'anonymous',
+        svc: 'stock', type: 'stock_session_complete',
+        who: (typeof _user !== 'undefined' && _user?.ipv6) ? _user.ipv6 : 'anonymous',
         when: new Date().toISOString(),
-        where:'stock.gopang.net',
-        what: {
-          summary: `K-Stock AI 전문가 상담: ${mins}분, ${_sessionMsgCnt}회, 주제: ${assets}`,
-          session_minutes: mins,
-          message_count: _sessionMsgCnt,
-          assets,
-          chat_length: _chatHistory.length,
-        },
+        where: 'stock.gopang.net',
+        what: { session_minutes: mins, message_count: _sessionMsgCnt, assets, chat_length: _chatHistory.length },
         how: { method: 'AI 자산관리 전문가 채팅 (DeepSeek)', device: 'mobile' },
-        why: {
-          goal: '개인 맞춤형 자산관리 + 재무 균형점 달성',
-          triggered: _gwpContext ? 'gopang_gwp' : 'direct',
-          gwp_ctx: _gwpContext || null,
-        },
+        why: { goal: '개인 맞춤형 자산관리', triggered: _gwpContext ? 'gopang_gwp' : 'direct', gwp_ctx: _gwpContext || null },
       }),
     });
     const ack = await res.json();
     return ack?.pdv_entry || 'recorded';
   } catch(e) {
-    console.warn('[PDV] 전송 실패:', e.message);
+    console.warn('[PDV]', e.message);
     return null;
   }
 }
 
-// ── 고팡으로 복귀 ──────────────────────────────────────────
+// ── 복귀 ──────────────────────────────────────────────────
 async function finishAndReturn() {
-  const banner = document.getElementById('complete-banner');
-  const btn = banner.querySelector('.btn-return');
-  btn.textContent = '기록 중…';
-  btn.disabled = true;
+  const btn = document.querySelector('.cb-btn-primary');
+  btn.textContent = '기록 중…'; btn.disabled = true;
   const mins = Math.round((new Date() - _sessionStart) / 60000);
   const pdvId = await sendPDVReport();
 
-  // 세션 요약
-  const el = document.createElement('div');
-  el.className = 'session-stats';
-  el.innerHTML = `
-    <h5>이번 상담 요약</h5>
-    <div class="stat-row"><span>상담 시간</span><span>${mins}분</span></div>
-    <div class="stat-row"><span>대화 횟수</span><span>${_sessionMsgCnt}회</span></div>
-    <div class="stat-row"><span>주요 주제</span><span>${extractAssets()}</span></div>
-    <div class="stat-row"><span>PDV 기록</span><span>완료 ✓</span></div>
+  // 보고서 스케줄러 초기화 (school initReportScheduler 패턴 동일)
+  // report.js가 로드된 경우 자동 실행
+  if (typeof initReportScheduler === 'function') {
+    const ipv6 = (typeof _user !== 'undefined' && _user?.ipv6) ? _user.ipv6 : null;
+    if (ipv6) initReportScheduler(ipv6);
+  }
+
+  // 세션 요약 카드
+  const card = document.createElement('div');
+  card.className = 'session-card';
+  card.innerHTML = `
+    <div class="session-card-title">이번 상담 요약</div>
+    <div class="sc-row"><span>상담 시간</span><span>${mins}분</span></div>
+    <div class="sc-row"><span>대화 횟수</span><span>${_sessionMsgCnt}회</span></div>
+    <div class="sc-row"><span>주요 주제</span><span>${extractAssets()}</span></div>
+    <div class="sc-row"><span>PDV 기록</span><span>완료 ✓</span></div>
   `;
-  document.getElementById('chat-body').appendChild(el);
-  appendAI('상담 기록이 고팡 PDV에 저장됐습니다. ✅\n수고하셨습니다! 자산관리 목표를 향해 한 걸음 더 나아갔습니다. 📊');
+  document.getElementById('chat-body').appendChild(card);
+  appendAI('상담 기록이 고팡 PDV에 저장됐습니다. ✓\n수고하셨습니다! 자산관리 목표를 향해 한 걸음 더 나아갔습니다.');
   hideBanner();
 
-  // GWP postMessage
   if (_isGwp && window.opener) {
     try {
-      window.opener.postMessage({
-        type: 'GWP_SESSION_COMPLETE', svc: 'stock',
-        pdv_id: pdvId, minutes: mins, assets: extractAssets(),
-      }, _gwpOrigin);
-    } catch(e) { console.warn('[GWP]', e.message); }
+      window.opener.postMessage({ type: 'GWP_SESSION_COMPLETE', svc: 'stock', pdv_id: pdvId, minutes: mins, assets: extractAssets() }, _gwpOrigin);
+    } catch(e) {}
   }
 
   setTimeout(() => {
@@ -550,59 +759,315 @@ function goBack() {
   suggestComplete();
 }
 
-// ── 환영 메시지 ────────────────────────────────────────────
-function showWelcome() {
+// ── 환영 메시지 ───────────────────────────────────────────
+function showWelcome(user) {
   const now = new Date();
-  const hour = now.getHours();
-  const greet = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '좋은 저녁이에요';
+  const h = now.getHours();
+  const greet = h < 12 ? '좋은 아침이에요' : h < 18 ? '안녕하세요' : '좋은 저녁이에요';
+
+  // 날짜 구분선
   const dateEl = document.createElement('div');
-  dateEl.className = 'date-divider';
-  dateEl.textContent = now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  dateEl.className = 'date-div';
+  dateEl.textContent = now.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
   document.getElementById('chat-body').appendChild(dateEl);
 
-  let intro = `${greet}! 저는 K-Stock AI 자산관리 전문가입니다. 📊\n\n`;
+  let intro = `${greet}! 저는 K-Stock AI 자산관리 전문가입니다.\n\n`;
   if (_gwpContext) {
     intro += `고팡에서 **"${_gwpContext}"** 라고 하셨군요.\n바로 분석 시작할게요!`;
   } else {
-    intro += `포트폴리오 점검, 리밸런싱, 절세 전략, 시장 분석 — 무엇이든 물어보세요.\n\n⚠️ 본 서비스는 투자 정보 제공이며 투자 권유가 아닙니다.`;
+    intro += `포트폴리오 점검, 리밸런싱, 절세 전략, 시장 분석 — 무엇이든 물어보세요.`;
   }
   appendAI(intro);
 }
 
 // ── 초기화 ────────────────────────────────────────────────
 (async () => {
-  // 인증 (auth.js가 있으면 활용, 없으면 스킵)
-  try {
-    if (typeof initAuth === 'function') {
-      _user = await initAuth();
-      if (!_user) return;
-    }
-  } catch(e) {
-    console.warn('[Auth]', e.message);
-  }
+  // 고팡 SSO 인증 (school/auth.js initAuth() 패턴 동일)
+  const user = await initAuth();
+  if (!user) return;  // 리다이렉트 중 (gopang-sso.js 경로 2-C/D)
 
   document.getElementById('auth-loading').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
 
-  if (_user?.level && _user.level !== 'L0') {
-    document.getElementById('auth-badge').textContent = _user.level;
-    document.getElementById('topbar-sub').textContent = `K-Stock · ${_user.level} 인증 완료`;
+  // 인증 배지 렌더링 (auth.js renderAuthBadge 호출)
+  renderAuthBadge();
+  if (user.level && user.level !== 'L0') {
+    document.getElementById('topbar-sub').textContent =
+      `K-Stock · ${user.level} 인증 완료`;
   }
 
-  showWelcome();
+  showWelcome(user);
 
   if (_gwpContext) {
-    setTimeout(() => sendMessage(_gwpContext), 600);
+    setTimeout(() => sendMessageWithAttach(_gwpContext), 600);
   }
 
   // URL 정리
   const clean = new URL(location.href);
-  clean.searchParams.delete('gwp');
-  clean.searchParams.delete('gwp_token');
-  clean.searchParams.delete('ctx');
-  clean.searchParams.delete('origin');
+  ['gwp','gwp_token','ctx','origin'].forEach(k => clean.searchParams.delete(k));
   history.replaceState({}, '', clean.toString());
 })();
+
+// ══ 미디어 기능 ══════════════════════════════════════════
+
+// ── 첨부 파일 ────────────────────────────────────────────
+let _attachedFiles = [];   // { file, dataUrl, type }
+
+function triggerFile() {
+  document.getElementById('file-input').click();
+}
+function triggerCamera() {
+  document.getElementById('camera-input').click();
+}
+
+async function handleFiles(fileList) {
+  const preview = document.getElementById('attach-preview');
+  for (const file of fileList) {
+    const isImage = file.type.startsWith('image/');
+    const dataUrl = await readFileAsDataUrl(file);
+    const id = 'att-' + Date.now() + Math.random().toString(36).slice(2,6);
+    _attachedFiles.push({ id, file, dataUrl, isImage });
+
+    const chip = document.createElement('div');
+    chip.className = 'attach-chip';
+    chip.id = id;
+    if (isImage) {
+      chip.innerHTML = `
+        <img class="attach-chip-img" src="${dataUrl}" alt="${esc(file.name)}">
+        <span class="attach-chip-name">${esc(file.name)}</span>
+        <button class="attach-remove" onclick="removeAttach('${id}')">✕</button>`;
+    } else {
+      chip.innerHTML = `
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--brand);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="attach-chip-name">${esc(file.name)}</span>
+        <span style="font-size:10px;color:var(--txt-3);flex-shrink:0">${fmtSize(file.size)}</span>
+        <button class="attach-remove" onclick="removeAttach('${id}')">✕</button>`;
+    }
+    preview.appendChild(chip);
+  }
+  preview.classList.add('show');
+  updateSendBtn();
+  // 파일 인풋 초기화 (같은 파일 재선택 허용)
+  document.getElementById('file-input').value = '';
+  document.getElementById('camera-input').value = '';
+}
+
+function removeAttach(id) {
+  _attachedFiles = _attachedFiles.filter(f => f.id !== id);
+  document.getElementById(id)?.remove();
+  if (_attachedFiles.length === 0) {
+    document.getElementById('attach-preview').classList.remove('show');
+  }
+  updateSendBtn();
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(0) + 'KB';
+  return (bytes/1048576).toFixed(1) + 'MB';
+}
+
+function updateSendBtn() {
+  const inp = document.getElementById('msg-input');
+  document.getElementById('send-btn').disabled =
+    !inp.value.trim() && _attachedFiles.length === 0;
+}
+
+// ── 음성 녹음 ─────────────────────────────────────────────
+let _mediaRecorder = null;
+let _audioChunks = [];
+let _recTimer = null;
+let _recSecs = 0;
+let _animFrame = null;
+let _analyser = null;
+
+async function toggleMic() {
+  if (_mediaRecorder && _mediaRecorder.state === 'recording') {
+    stopRecording();
+  } else {
+    await startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = ctx.createMediaStreamSource(stream);
+    _analyser = ctx.createAnalyser();
+    _analyser.fftSize = 256;
+    source.connect(_analyser);
+
+    _mediaRecorder = new MediaRecorder(stream);
+    _audioChunks = [];
+    _mediaRecorder.ondataavailable = e => { if (e.data.size > 0) _audioChunks.push(e.data); };
+    _mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      ctx.close();
+      const blob = new Blob(_audioChunks, { type: 'audio/webm' });
+      sendAudioMessage(blob);
+    };
+    _mediaRecorder.start();
+
+    // UI
+    document.getElementById('mic-btn').classList.add('recording');
+    document.getElementById('rec-bar').classList.add('show');
+    _recSecs = 0;
+    updateRecTime();
+    _recTimer = setInterval(() => { _recSecs++; updateRecTime(); }, 1000);
+    drawWave();
+  } catch(e) {
+    alert('마이크 접근 권한이 필요합니다.
+(' + e.message + ')');
+  }
+}
+
+function stopRecording() {
+  if (!_mediaRecorder) return;
+  _mediaRecorder.stop();
+  clearInterval(_recTimer);
+  cancelAnimationFrame(_animFrame);
+  document.getElementById('mic-btn').classList.remove('recording');
+  document.getElementById('rec-bar').classList.remove('show');
+  _mediaRecorder = null;
+}
+
+function cancelRecording() {
+  if (_mediaRecorder) {
+    _mediaRecorder.onstop = null;   // onstop 무시
+    _mediaRecorder.stop();
+    _mediaRecorder.stream?.getTracks().forEach(t => t.stop());
+  }
+  clearInterval(_recTimer);
+  cancelAnimationFrame(_animFrame);
+  _mediaRecorder = null;
+  _audioChunks = [];
+  document.getElementById('mic-btn').classList.remove('recording');
+  document.getElementById('rec-bar').classList.remove('show');
+}
+
+function updateRecTime() {
+  const m = Math.floor(_recSecs / 60);
+  const s = String(_recSecs % 60).padStart(2, '0');
+  document.getElementById('rec-time').textContent = m + ':' + s;
+}
+
+function drawWave() {
+  const canvas = document.getElementById('rec-canvas');
+  const ctx2 = canvas.getContext('2d');
+  const buf = new Uint8Array(_analyser.frequencyBinCount);
+  function draw() {
+    _animFrame = requestAnimationFrame(draw);
+    _analyser.getByteTimeDomainData(buf);
+    ctx2.clearRect(0, 0, canvas.width, canvas.height);
+    ctx2.beginPath();
+    ctx2.strokeStyle = getComputedStyle(document.documentElement)
+      .getPropertyValue('--brand') || '#2563eb';
+    ctx2.lineWidth = 1.5;
+    const sliceW = canvas.width / buf.length;
+    let x = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const y = (buf[i] / 128.0) * (canvas.height / 2);
+      i === 0 ? ctx2.moveTo(x, y) : ctx2.lineTo(x, y);
+      x += sliceW;
+    }
+    ctx2.stroke();
+  }
+  draw();
+}
+
+async function sendAudioMessage(blob) {
+  // 음성 파일을 첨부 파일로 추가 후 전송
+  const dataUrl = await readFileAsDataUrl(blob);
+  const id = 'att-audio-' + Date.now();
+  _attachedFiles.push({ id, file: blob, dataUrl, isImage: false, isAudio: true });
+
+  // 사용자 버블: 음성 메시지 표시
+  const body = document.getElementById('chat-body');
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-user';
+  wrap.innerHTML = `
+    <div class="user-text" style="display:flex;align-items:center;gap:8px;padding:8px 12px">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+      <audio controls src="${dataUrl}" style="height:28px;max-width:180px"></audio>
+    </div>
+    <div class="user-time">${fmtTime(new Date())}</div>`;
+  body.appendChild(wrap);
+  scrollBottom();
+  _sessionMsgCnt++;
+
+  // AI에게 음성 입력 알림 (텍스트로 대체 전송)
+  _attachedFiles = _attachedFiles.filter(f => f.id !== id);
+  await sendMessage('[음성 메시지] 음성으로 질문을 보냈습니다. 자산관리에 대해 답변해 주세요.');
+}
+
+// ── sendMessage 오버라이드: 첨부파일 포함 ────────────────
+const _origSendMessage = sendMessage;
+
+// 첨부 파일이 있을 때 메시지 전송 시 함께 포함
+async function sendMessageWithAttach(text) {
+  const hasAttach = _attachedFiles.length > 0;
+  if (!text.trim() && !hasAttach) return;
+
+  // 사용자 버블 (첨부 포함)
+  document.getElementById('quick-chips').style.display = 'none';
+  const body = document.getElementById('chat-body');
+
+  if (hasAttach) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bubble-user';
+    let attachHtml = _attachedFiles.map(f =>
+      f.isImage
+        ? `<img src="${f.dataUrl}" style="max-width:180px;max-height:140px;border-radius:8px;display:block;margin-bottom:4px">`
+        : `<div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;font-size:11px;margin-bottom:4px">
+             <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:#fff;stroke-width:2;fill:none;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+             ${esc(f.file.name||'파일')}
+           </div>`
+    ).join('');
+    wrap.innerHTML = `
+      <div class="user-text">${attachHtml}${text ? esc(text) : ''}</div>
+      <div class="user-time">${fmtTime(new Date())}</div>`;
+    body.appendChild(wrap);
+    scrollBottom();
+    _sessionMsgCnt++;
+
+    // 첨부 파일 초기화
+    _attachedFiles = [];
+    document.getElementById('attach-preview').innerHTML = '';
+    document.getElementById('attach-preview').classList.remove('show');
+  }
+
+  // 텍스트 입력 초기화
+  const inp = document.getElementById('msg-input');
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  if (text.trim() || hasAttach) {
+    const typEl = showTyping();
+    document.getElementById('send-btn').disabled = true;
+    try {
+      const prompt = text.trim() || (hasAttach ? '첨부 파일에 대해 분석해 주세요.' : '');
+      const reply = await callAI(prompt);
+      removeTyping();
+      appendAI(reply);
+      if (_sessionMsgCnt > 0 && _sessionMsgCnt % 5 === 0) suggestComplete();
+    } catch(e) {
+      removeTyping();
+      appendAI('⚠️ 오류가 발생했습니다. 다시 시도해 주세요.
+(' + e.message + ')');
+    }
+    document.getElementById('send-btn').disabled = false;
+  }
+}
 </script>
 </body>
 </html>
