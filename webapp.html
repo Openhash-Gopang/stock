@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>K-Stock AI 전문가</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;height:100dvh;
+  overflow:hidden;
+  font-family:'Inter',-apple-system,'Helvetica Neue',sans-serif;
+  font-size:15px;
+  background:#f2f2f7;
+  color:#1c1c1e;
+  -webkit-font-smoothing:antialiased;
+}
+
+:root{
+  --brand:   #2563eb;
+  --brand-dk:#1d4ed8;
+  --bg:      #f2f2f7;
+  --surface: #ffffff;
+  --sep:     #e5e5ea;
+  --txt2:    #8e8e93;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+
+/* ══ 상단 바 ══ */
+.topbar{
+  display:flex;align-items:center;
+  padding:calc(var(--safe-top)+10px) 16px 10px;
+  background:var(--surface);
+  border-bottom:.5px solid var(--sep);
+  gap:10px;flex-shrink:0;min-height:52px;
+}
+.back-btn{
+  background:none;border:none;
+  color:var(--brand);font-size:16px;font-weight:400;
+  cursor:pointer;padding:4px 0;
+  display:flex;align-items:center;gap:4px;
+  flex-shrink:0;white-space:nowrap;
+}
+.back-btn svg{width:10px;height:16px;stroke:var(--brand);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.topbar-center{flex:1;text-align:center;overflow:hidden}
+.topbar-title{font-size:16px;font-weight:600;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-sub{font-size:11px;color:var(--txt2);margin-top:1px}
+.auth-badge{
+  background:#eff6ff;color:var(--brand);
+  border-radius:10px;padding:3px 8px;
+  font-size:11px;font-weight:600;flex-shrink:0;
+}
+
+/* ══ 채팅 ══ */
+#chat-body{
+  flex:1;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:12px 16px 8px;
+  display:flex;flex-direction:column;gap:8px;
+  background:var(--bg);
+}
+.date-divider{text-align:center;font-size:12px;color:var(--txt2);padding:4px 0 8px}
+.bubble-ai{
+  display:flex;align-items:flex-end;gap:8px;
+  max-width:88%;align-self:flex-start;
+}
+.ai-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.ai-avatar svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.bubble-ai-text{
+  background:var(--surface);
+  border-radius:18px 18px 18px 4px;
+  padding:10px 14px;font-size:15px;line-height:1.5;
+  color:#1c1c1e;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  word-break:break-word;
+}
+.bubble-ai-text b{font-weight:600}
+.bubble-ai-time{font-size:10px;color:var(--txt2);margin-top:2px;padding-left:36px}
+.bubble-user{
+  display:flex;flex-direction:column;
+  align-items:flex-end;
+  max-width:88%;align-self:flex-end;
+}
+.bubble-user-text{
+  background:var(--brand);
+  border-radius:18px 18px 4px 18px;
+  padding:10px 14px;font-size:15px;line-height:1.5;color:#fff;word-break:break-word;
+}
+.bubble-user-time{font-size:10px;color:var(--txt2);margin-top:2px;text-align:right}
+.typing{display:flex;align-items:flex-end;gap:8px;align-self:flex-start}
+.typing-dots{
+  background:var(--surface);border-radius:18px;
+  padding:12px 16px;display:flex;gap:5px;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:#c7c7cc;animation:typingDot 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes typingDot{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-6px);opacity:1}}
+
+/* ══ 완료 배너 ══ */
+.complete-banner{
+  display:none;
+  background:linear-gradient(135deg,#eff6ff,#f0fdf4);
+  border:1px solid #bfdbfe;border-radius:14px;
+  margin:8px 16px;padding:14px 16px;flex-shrink:0;
+}
+.complete-banner.show{display:block}
+.complete-banner h4{font-size:14px;font-weight:700;color:var(--brand);margin-bottom:4px}
+.complete-banner p{font-size:12px;color:#374151;line-height:1.5;margin-bottom:12px}
+.complete-btns{display:flex;gap:8px}
+.btn-return{
+  flex:1;padding:10px;
+  background:var(--brand);color:#fff;
+  border:none;border-radius:10px;font-size:14px;font-weight:700;
+  cursor:pointer;text-align:center;transition:background .15s;
+}
+.btn-return:hover{background:var(--brand-dk)}
+.btn-continue{
+  flex:1;padding:10px;
+  background:var(--surface);color:#374151;
+  border:1px solid var(--sep);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;
+}
+
+/* ══ 빠른 질문 칩 ══ */
+.quick-chips{
+  display:flex;gap:8px;
+  padding:6px 16px 8px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;flex-shrink:0;background:var(--bg);
+}
+.quick-chips::-webkit-scrollbar{display:none}
+.chip{
+  background:var(--surface);border:1px solid var(--sep);
+  border-radius:16px;padding:6px 14px;
+  font-size:13px;color:var(--brand);
+  white-space:nowrap;cursor:pointer;flex-shrink:0;
+  transition:background .12s;
+}
+.chip:hover,.chip:active{background:#eff6ff}
+
+/* ══ 입력 영역 ══ */
+.input-area{
+  background:var(--surface);border-top:.5px solid var(--sep);
+  padding:8px 12px calc(8px + var(--safe-bot));
+  display:flex;align-items:flex-end;gap:8px;flex-shrink:0;
+}
+.input-wrap{
+  flex:1;background:var(--bg);border:1px solid var(--sep);
+  border-radius:20px;display:flex;align-items:flex-end;
+  padding:6px 12px;transition:border-color .15s;
+}
+.input-wrap:focus-within{border-color:var(--brand)}
+#msg-input{
+  flex:1;background:none;border:none;outline:none;
+  font-family:'Inter',sans-serif;font-size:15px;color:#1c1c1e;
+  resize:none;max-height:100px;line-height:1.4;
+}
+#msg-input::placeholder{color:#c7c7cc}
+.send-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--brand);border:none;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:background .15s,opacity .15s;
+}
+.send-btn:disabled{background:#c7c7cc;cursor:not-allowed}
+.send-btn svg{width:16px;height:16px;fill:#fff}
+
+/* ══ 로딩 ══ */
+#auth-loading{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--surface);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;
+}
+.spinner{
+  width:28px;height:28px;
+  border:3px solid #e5e5ea;border-top-color:var(--brand);
+  border-radius:50%;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ 세션 요약 ══ */
+.session-stats{
+  background:var(--surface);border-radius:14px;
+  padding:14px 16px;margin:4px 0;
+  align-self:center;width:85%;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
+}
+.session-stats h5{
+  font-size:12px;font-weight:600;
+  color:var(--txt2);margin-bottom:10px;
+  text-align:center;text-transform:uppercase;letter-spacing:.5px;
+}
+.stat-row{
+  display:flex;justify-content:space-between;
+  font-size:13px;padding:3px 0;
+  border-bottom:.5px solid var(--sep);
+}
+.stat-row:last-child{border-bottom:none}
+.stat-row span:last-child{font-weight:600;color:var(--brand)}
+</style>
+</head>
+<body>
+
+<div id="auth-loading">
+  <div class="spinner"></div>
+  <div style="font-size:14px;color:var(--txt2)">K-Stock 로딩 중…</div>
+</div>
+
+<div id="app" style="display:none">
+
+  <!-- 상단 바 -->
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()">
+      <svg viewBox="0 0 10 16"><polyline points="9 1 1 8 9 15"/></svg>
+      고팡
+    </button>
+    <div class="topbar-center">
+      <div class="topbar-title">AI 자산관리 전문가</div>
+      <div class="topbar-sub" id="topbar-sub">K-Stock · 24시간 전담 전문가</div>
+    </div>
+    <span class="auth-badge" id="auth-badge">L0</span>
+  </div>
+
+  <!-- 채팅 -->
+  <div id="chat-body"></div>
+
+  <!-- 빠른 질문 칩 -->
+  <div class="quick-chips" id="quick-chips">
+    <div class="chip" onclick="quickSend('오늘 시장 브리핑 해주세요')">오늘 시장 브리핑</div>
+    <div class="chip" onclick="quickSend('제 포트폴리오를 점검해 주세요')">포트폴리오 점검</div>
+    <div class="chip" onclick="quickSend('리밸런싱이 필요한가요?')">리밸런싱 제안</div>
+    <div class="chip" onclick="quickSend('절세 전략을 알려주세요')">절세 전략</div>
+    <div class="chip" onclick="quickSend('재무 목표를 수정하고 싶습니다')">목표 재설정</div>
+  </div>
+
+  <!-- 완료 배너 -->
+  <div class="complete-banner" id="complete-banner">
+    <h4>✅ 상담 완료</h4>
+    <p id="complete-summary">상담 내용이 고팡 PDV에 기록됩니다.</p>
+    <div class="complete-btns">
+      <button class="btn-return" onclick="finishAndReturn()">고팡으로 돌아가기</button>
+      <button class="btn-continue" onclick="hideBanner()">계속 상담하기</button>
+    </div>
+  </div>
+
+  <!-- 입력 -->
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="msg-input" rows="1" placeholder="포트폴리오, 절세, 리밸런싱… 무엇이든 물어보세요"></textarea>
+    </div>
+    <button class="send-btn" id="send-btn" disabled>
+      <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script>
+// ── 상태 ──────────────────────────────────────────────────
+let _chatHistory = [];
+let _systemPrompt = null;
+let _sessionStart = new Date();
+let _sessionMsgCnt = 0;
+let _gwpOrigin = null;
+let _gwpContext = null;
+let _user = null;
+
+const _params = new URLSearchParams(location.search);
+const _isGwp  = _params.get('gwp') === '1';
+_gwpOrigin = _params.get('origin') || 'https://gopang.net';
+try { _gwpContext = _params.get('ctx') ? decodeURIComponent(_params.get('ctx')) : null; }
+catch { _gwpContext = null; }
+
+// ── 시간 포맷 ──────────────────────────────────────────────
+function fmtTime(d) {
+  return d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+
+// ── 마크다운 → HTML ────────────────────────────────────────
+function mdToHtml(s) {
+  return s
+    .replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')
+    .replace(/\*(.*?)\*/g,'<i>$1</i>')
+    .replace(/`(.*?)`/g,'<code style="background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:13px">$1</code>')
+    .replace(/\n/g,'<br>');
+}
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── 메시지 렌더링 ──────────────────────────────────────────
+function appendAI(text) {
+  const body = document.getElementById('chat-body');
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-ai';
+  wrap.innerHTML = `
+    <div class="ai-avatar">
+      <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    </div>
+    <div class="bubble-ai-text">${mdToHtml(text)}</div>
+  `;
+  body.appendChild(wrap);
+  const timeEl = document.createElement('div');
+  timeEl.className = 'bubble-ai-time';
+  timeEl.textContent = fmtTime(new Date());
+  body.appendChild(timeEl);
+  scrollBottom();
+}
+
+function appendUser(text) {
+  const body = document.getElementById('chat-body');
+  const wrap = document.createElement('div');
+  wrap.className = 'bubble-user';
+  wrap.innerHTML = `
+    <div class="bubble-user-text">${escHtml(text)}</div>
+    <div class="bubble-user-time">${fmtTime(new Date())}</div>
+  `;
+  body.appendChild(wrap);
+  scrollBottom();
+}
+
+function showTyping() {
+  const body = document.getElementById('chat-body');
+  const el = document.createElement('div');
+  el.className = 'typing';el.id = 'typing-indicator';
+  el.innerHTML = `
+    <div class="ai-avatar">
+      <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    </div>
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+  `;
+  body.appendChild(el);
+  scrollBottom();
+  return el;
+}
+function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
+function scrollBottom() {
+  const b = document.getElementById('chat-body');
+  setTimeout(() => b.scrollTop = b.scrollHeight, 50);
+}
+
+// ── 시스템 프롬프트 ────────────────────────────────────────
+async function loadSystemPrompt() {
+  if (_systemPrompt) return _systemPrompt;
+  try {
+    const r = await fetch('prompts/system_prompt.txt');
+    _systemPrompt = await r.text();
+  } catch {
+    _systemPrompt = '당신은 K-Stock AI 자산관리 전문가입니다. 주식·ETF·채권 등 89개 자산군을 분석하며, 담당 고객 한 명을 전담합니다. 투자 권유가 아닌 정보 제공임을 항상 명시하세요. 답변은 간결하게 유지하세요.';
+  }
+  return _systemPrompt;
+}
+
+// ── DeepSeek API ───────────────────────────────────────────
+async function callAI(userMsg) {
+  const cfg = window.KSTOCK_CONFIG || {};
+  const sysPrompt = await loadSystemPrompt();
+  _chatHistory.push({ role: 'user', content: userMsg });
+  const messages = [
+    { role: 'system', content: sysPrompt },
+    ..._chatHistory,
+  ];
+  const res = await fetch(cfg.deepseekEndpoint || 'https://gopang-proxy.tensor-city.workers.dev/deepseek', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: cfg.model || 'deepseek-chat',
+      max_tokens: cfg.maxTokens || 800,
+      temperature: cfg.temperature || 0.5,
+      messages,
+    }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  const reply = data.choices?.[0]?.message?.content || '(응답 없음)';
+  _chatHistory.push({ role: 'assistant', content: reply });
+  return reply;
+}
+
+// ── 메시지 전송 ────────────────────────────────────────────
+async function sendMessage(text) {
+  if (!text.trim()) return;
+  document.getElementById('quick-chips').style.display = 'none';
+  appendUser(text);
+  _sessionMsgCnt++;
+  document.getElementById('msg-input').value = '';
+  document.getElementById('msg-input').style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  const typingEl = showTyping();
+  try {
+    const reply = await callAI(text);
+    removeTyping();
+    appendAI(reply);
+    if (_sessionMsgCnt > 0 && _sessionMsgCnt % 5 === 0) suggestComplete();
+  } catch(e) {
+    removeTyping();
+    appendAI('⚠️ 일시적인 오류가 발생했습니다. 다시 시도해 주세요.\n(' + e.message + ')');
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+function quickSend(text) { sendMessage(text); }
+
+// ── 입력 이벤트 ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('msg-input');
+  const sendBtn = document.getElementById('send-btn');
+  inp.addEventListener('input', () => {
+    inp.style.height = 'auto';
+    inp.style.height = Math.min(inp.scrollHeight, 100) + 'px';
+    sendBtn.disabled = !inp.value.trim();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!sendBtn.disabled) sendMessage(inp.value.trim());
+    }
+  });
+  sendBtn.addEventListener('click', () => sendMessage(inp.value.trim()));
+});
+
+// ── 완료 배너 ──────────────────────────────────────────────
+function suggestComplete() {
+  const mins = Math.round((new Date() - _sessionStart) / 60000);
+  document.getElementById('complete-summary').textContent =
+    `${mins}분 동안 ${_sessionMsgCnt}회 상담 — 고팡 PDV에 자산관리 기록을 전송하시겠습니까?`;
+  document.getElementById('complete-banner').classList.add('show');
+  scrollBottom();
+}
+function hideBanner() {
+  document.getElementById('complete-banner').classList.remove('show');
+}
+
+// ── 자산 키워드 추출 ───────────────────────────────────────
+function extractAssets() {
+  const userMsgs = _chatHistory.filter(m => m.role==='user').map(m => m.content).join(' ');
+  const keywords = ['주식','ETF','채권','리츠','부동산','비트코인','금','원자재',
+    '달러','환율','절세','IRP','ISA','연금','배당','공모주','사모펀드','리밸런싱'];
+  const found = keywords.filter(k => userMsgs.includes(k));
+  return found.length > 0 ? found.slice(0,5).join('·') : '종합 자산관리';
+}
+
+// ── PDV 전송 ───────────────────────────────────────────────
+async function sendPDVReport() {
+  const cfg = window.KSTOCK_CONFIG || {};
+  const mins = Math.round((new Date() - _sessionStart) / 60000);
+  const assets = extractAssets();
+  try {
+    const res = await fetch(cfg.pdvEndpoint || 'https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        svc: 'stock',
+        type: 'stock_session_complete',
+        who:  _user?.ipv6 || 'anonymous',
+        when: new Date().toISOString(),
+        where:'stock.gopang.net',
+        what: {
+          summary: `K-Stock AI 전문가 상담: ${mins}분, ${_sessionMsgCnt}회, 주제: ${assets}`,
+          session_minutes: mins,
+          message_count: _sessionMsgCnt,
+          assets,
+          chat_length: _chatHistory.length,
+        },
+        how: { method: 'AI 자산관리 전문가 채팅 (DeepSeek)', device: 'mobile' },
+        why: {
+          goal: '개인 맞춤형 자산관리 + 재무 균형점 달성',
+          triggered: _gwpContext ? 'gopang_gwp' : 'direct',
+          gwp_ctx: _gwpContext || null,
+        },
+      }),
+    });
+    const ack = await res.json();
+    return ack?.pdv_entry || 'recorded';
+  } catch(e) {
+    console.warn('[PDV] 전송 실패:', e.message);
+    return null;
+  }
+}
+
+// ── 고팡으로 복귀 ──────────────────────────────────────────
+async function finishAndReturn() {
+  const banner = document.getElementById('complete-banner');
+  const btn = banner.querySelector('.btn-return');
+  btn.textContent = '기록 중…';
+  btn.disabled = true;
+  const mins = Math.round((new Date() - _sessionStart) / 60000);
+  const pdvId = await sendPDVReport();
+
+  // 세션 요약
+  const el = document.createElement('div');
+  el.className = 'session-stats';
+  el.innerHTML = `
+    <h5>이번 상담 요약</h5>
+    <div class="stat-row"><span>상담 시간</span><span>${mins}분</span></div>
+    <div class="stat-row"><span>대화 횟수</span><span>${_sessionMsgCnt}회</span></div>
+    <div class="stat-row"><span>주요 주제</span><span>${extractAssets()}</span></div>
+    <div class="stat-row"><span>PDV 기록</span><span>완료 ✓</span></div>
+  `;
+  document.getElementById('chat-body').appendChild(el);
+  appendAI('상담 기록이 고팡 PDV에 저장됐습니다. ✅\n수고하셨습니다! 자산관리 목표를 향해 한 걸음 더 나아갔습니다. 📊');
+  hideBanner();
+
+  // GWP postMessage
+  if (_isGwp && window.opener) {
+    try {
+      window.opener.postMessage({
+        type: 'GWP_SESSION_COMPLETE', svc: 'stock',
+        pdv_id: pdvId, minutes: mins, assets: extractAssets(),
+      }, _gwpOrigin);
+    } catch(e) { console.warn('[GWP]', e.message); }
+  }
+
+  setTimeout(() => {
+    if (_isGwp && window.opener) {
+      window.opener.postMessage({ type: 'GWP_CLOSE', svc: 'stock' }, _gwpOrigin);
+    } else {
+      window.location.href = 'https://gopang.net';
+    }
+  }, 1500);
+}
+
+function goBack() {
+  if (_sessionMsgCnt === 0) {
+    if (_isGwp && window.opener) {
+      window.opener.postMessage({ type: 'GWP_CLOSE', svc: 'stock' }, _gwpOrigin);
+    } else {
+      window.location.href = 'https://gopang.net';
+    }
+    return;
+  }
+  suggestComplete();
+}
+
+// ── 환영 메시지 ────────────────────────────────────────────
+function showWelcome() {
+  const now = new Date();
+  const hour = now.getHours();
+  const greet = hour < 12 ? '좋은 아침이에요' : hour < 18 ? '안녕하세요' : '좋은 저녁이에요';
+  const dateEl = document.createElement('div');
+  dateEl.className = 'date-divider';
+  dateEl.textContent = now.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+  document.getElementById('chat-body').appendChild(dateEl);
+
+  let intro = `${greet}! 저는 K-Stock AI 자산관리 전문가입니다. 📊\n\n`;
+  if (_gwpContext) {
+    intro += `고팡에서 **"${_gwpContext}"** 라고 하셨군요.\n바로 분석 시작할게요!`;
+  } else {
+    intro += `포트폴리오 점검, 리밸런싱, 절세 전략, 시장 분석 — 무엇이든 물어보세요.\n\n⚠️ 본 서비스는 투자 정보 제공이며 투자 권유가 아닙니다.`;
+  }
+  appendAI(intro);
+}
+
+// ── 초기화 ────────────────────────────────────────────────
+(async () => {
+  // 인증 (auth.js가 있으면 활용, 없으면 스킵)
+  try {
+    if (typeof initAuth === 'function') {
+      _user = await initAuth();
+      if (!_user) return;
+    }
+  } catch(e) {
+    console.warn('[Auth]', e.message);
+  }
+
+  document.getElementById('auth-loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  if (_user?.level && _user.level !== 'L0') {
+    document.getElementById('auth-badge').textContent = _user.level;
+    document.getElementById('topbar-sub').textContent = `K-Stock · ${_user.level} 인증 완료`;
+  }
+
+  showWelcome();
+
+  if (_gwpContext) {
+    setTimeout(() => sendMessage(_gwpContext), 600);
+  }
+
+  // URL 정리
+  const clean = new URL(location.href);
+  clean.searchParams.delete('gwp');
+  clean.searchParams.delete('gwp_token');
+  clean.searchParams.delete('ctx');
+  clean.searchParams.delete('origin');
+  history.replaceState({}, '', clean.toString());
+})();
+</script>
+</body>
+</html>

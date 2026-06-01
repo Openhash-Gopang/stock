@@ -1,0 +1,19 @@
+{
+  "asset_classes": [
+    { "id": "kr_stock",  "label": "국내주식",  "icon": "chart-line",  "cfa_code": "EQ-KR",     "weight_default": 20 },
+    { "id": "us_stock",  "label": "미국주식",  "icon": "globe",       "cfa_code": "EQ-US",     "weight_default": 15 },
+    { "id": "etf",       "label": "ETF",       "icon": "layers",      "cfa_code": "FI-ETF",    "weight_default": 15 },
+    { "id": "bond",      "label": "채권",      "icon": "file-text",   "cfa_code": "FI-BOND",   "weight_default": 15 },
+    { "id": "reits",     "label": "리츠",      "icon": "home",        "cfa_code": "RE-REIT",   "weight_default": 10 },
+    { "id": "commodity", "label": "원자재",    "icon": "package",     "cfa_code": "CMDTY",     "weight_default": 8  },
+    { "id": "crypto",    "label": "암호화폐",  "icon": "cpu",         "cfa_code": "CRYPTO",    "weight_default": 5  },
+    { "id": "pension",   "label": "연금·IRP",  "icon": "shield",      "cfa_code": "PENSION",   "weight_default": 12 }
+  ],
+  "tax_types": [
+    { "id": "comprehensive_income", "label": "종합소득세",       "rate_max": 0.45 },
+    { "id": "capital_gains",        "label": "양도세",           "rate": 0.22 },
+    { "id": "financial_income",     "label": "금융소득종합과세", "threshold": 20000000 }
+  ],
+  "rebalance_threshold": 0.05,
+  "var_confidence": 0.95
+}

@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Stock 대시보드</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+<style>
+
+/* ══ 리셋 ══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',-apple-system,sans-serif;font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ══ 색상 변수 (Supabase 팔레트 정밀 모방) ══ */
+:root{
+  /* 배경 */
+  --bg-app:    #1c1f26;   /* Supabase 앱 배경 */
+  --bg-panel:  #22262f;   /* 패널 배경 */
+  --bg-card:   #2a2f3a;   /* 카드 배경 */
+  --bg-hover:  #2f3542;   /* 호버 상태 */
+  --bg-input:  #1a1e27;   /* 인풋 배경 */
+
+  /* 브랜드 */
+  --brand:     #2563eb;
+  --brand-dk:  #1d4ed8;
+  --brand-lt:  rgba(37,99,235,.15);
+  --brand-glow:rgba(37,99,235,.3);
+
+  /* 텍스트 */
+  --txt-1:     #e8eaf0;   /* 주요 */
+  --txt-2:     #9ba3b2;   /* 보조 */
+  --txt-3:     #5c6478;   /* 비활성 */
+
+  /* 보더 */
+  --border:    rgba(255,255,255,.07);
+  --border-lt: rgba(255,255,255,.12);
+
+  /* 상태 색 */
+  --green:     #22c55e;
+  --green-bg:  rgba(34,197,94,.12);
+  --red:       #ef4444;
+  --red-bg:    rgba(239,68,68,.12);
+  --amber:     #f59e0b;
+  --amber-bg:  rgba(245,158,11,.12);
+  --blue:      #60a5fa;
+  --blue-bg:   rgba(96,165,250,.12);
+
+  /* 반경 */
+  --r:  6px;
+  --rl: 10px;
+}
+
+/* ══ 앱 레이아웃 (Supabase: sidebar + content) ══ */
+#app{display:flex;height:100vh;background:var(--bg-app);color:var(--txt-1)}
+
+/* ══ 사이드바 ══ */
+.sidebar{
+  width:56px;
+  background:#0f1117;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:10px 0;
+  flex-shrink:0;
+  z-index:50;
+  transition:width .2s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+.sidebar:hover{width:200px}
+
+.sb-logo{
+  display:flex;align-items:center;
+  width:100%;padding:0 14px;
+  min-height:36px;margin-bottom:16px;
+  flex-shrink:0;
+}
+.sb-logo-mark{
+  width:26px;height:26px;background:var(--brand);
+  border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-logo-mark svg{width:14px;height:14px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sb-logo-text{font-size:14px;font-weight:700;color:var(--txt-1);margin-left:8px;white-space:nowrap;opacity:0;transition:opacity .15s}
+.sidebar:hover .sb-logo-text{opacity:1}
+
+.sb-nav{flex:1;width:100%;padding:0 6px;display:flex;flex-direction:column;gap:1px}
+.sb-item{
+  display:flex;align-items:center;
+  width:100%;padding:7px 8px;
+  border-radius:var(--r);
+  color:var(--txt-3);
+  cursor:pointer;background:none;border:none;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
+  white-space:nowrap;transition:background .1s,color .1s;
+  text-align:left;
+}
+.sb-item:hover{background:rgba(255,255,255,.06);color:var(--txt-2)}
+.sb-item.active{background:rgba(37,99,235,.2);color:#93c5fd}
+.sb-item svg{width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sb-item-label{margin-left:8px;opacity:0;transition:opacity .15s}
+.sidebar:hover .sb-item-label{opacity:1}
+
+.sb-section{
+  font-size:10px;font-weight:600;color:var(--txt-3);
+  letter-spacing:.8px;text-transform:uppercase;
+  padding:10px 14px 3px;white-space:nowrap;
+  opacity:0;transition:opacity .15s;
+}
+.sidebar:hover .sb-section{opacity:1}
+
+.sb-bottom{
+  width:100%;padding:6px;
+  border-top:1px solid var(--border);
+  display:flex;flex-direction:column;gap:1px;
+}
+
+/* ══ 콘텐츠 영역 ══ */
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* 상단 바 (Supabase topbar 정밀 모방) */
+.topbar{
+  height:48px;
+  background:#0f1117;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 20px;gap:12px;
+  flex-shrink:0;
+}
+.topbar-tabs{display:flex;gap:0;height:100%;align-items:flex-end}
+.tab{
+  padding:0 14px;height:36px;
+  display:flex;align-items:center;
+  font-size:12px;font-weight:500;color:var(--txt-3);
+  border-bottom:2px solid transparent;
+  cursor:pointer;transition:color .12s,border-color .12s;
+  white-space:nowrap;
+}
+.tab:hover{color:var(--txt-2)}
+.tab.active{color:var(--txt-1);border-bottom-color:var(--brand)}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.topbar-badge{
+  display:flex;align-items:center;gap:5px;
+  background:var(--green-bg);color:var(--green);
+  border:1px solid rgba(34,197,94,.2);
+  border-radius:20px;padding:3px 10px;
+  font-size:11px;font-weight:600;
+}
+.topbar-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.icon-btn{
+  width:30px;height:30px;
+  background:transparent;border:1px solid var(--border);
+  border-radius:var(--r);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--txt-3);transition:background .12s,color .12s;
+}
+.icon-btn:hover{background:var(--bg-hover);color:var(--txt-2)}
+.icon-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+.btn-sm{
+  padding:5px 12px;border-radius:var(--r);
+  font-size:12px;font-weight:500;cursor:pointer;
+  border:none;font-family:'Inter',sans-serif;
+  display:flex;align-items:center;gap:5px;
+  transition:background .12s;
+}
+.btn-sm svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.btn-sm-primary{background:var(--brand);color:#fff}
+.btn-sm-primary:hover{background:var(--brand-dk)}
+.btn-sm-ghost{background:transparent;color:var(--txt-2);border:1px solid var(--border)}
+.btn-sm-ghost:hover{background:var(--bg-hover);color:var(--txt-1)}
+
+/* ══ 페이지 콘텐츠 스크롤 영역 ══ */
+.page{flex:1;overflow-y:auto;padding:24px}
+.page::-webkit-scrollbar{width:4px}
+.page::-webkit-scrollbar-track{background:transparent}
+.page::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ══ 페이지 헤더 ══ */
+.page-header{margin-bottom:20px;display:flex;align-items:flex-start;justify-content:space-between}
+.page-title{font-size:18px;font-weight:700;color:var(--txt-1);letter-spacing:-.3px}
+.page-sub{font-size:12px;color:var(--txt-3);margin-top:3px}
+
+/* ══ 필터 바 (Supabase Table Editor 스타일) ══ */
+.filter-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  border-radius:var(--rl) var(--rl) 0 0;
+  padding:8px 12px;
+  border-bottom:none;
+}
+.filter-search{
+  display:flex;align-items:center;gap:6px;
+  flex:1;color:var(--txt-3);
+}
+.filter-search svg{width:14px;height:14px;stroke:var(--txt-3);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.filter-input{
+  background:none;border:none;outline:none;
+  color:var(--txt-1);font-family:'Inter',sans-serif;font-size:12px;
+  flex:1;
+}
+.filter-input::placeholder{color:var(--txt-3)}
+.filter-divider{width:1px;height:16px;background:var(--border)}
+.filter-chip{
+  display:flex;align-items:center;gap:4px;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:4px;padding:3px 8px;
+  font-size:11px;color:var(--txt-2);cursor:pointer;
+  transition:background .1s,color .1s;
+}
+.filter-chip:hover{background:var(--bg-hover);color:var(--txt-1)}
+.filter-chip svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.filter-chip.active{background:var(--brand-lt);color:var(--blue);border-color:rgba(37,99,235,.3)}
+
+/* ══ 테이블 (Supabase Table Editor 정밀 모방) ══ */
+.table-wrap{
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  border-radius:0 0 var(--rl) var(--rl);
+  overflow:hidden;
+}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table thead tr{background:var(--bg-card)}
+.data-table th{
+  padding:8px 14px;text-align:left;
+  font-size:11px;font-weight:600;color:var(--txt-3);
+  letter-spacing:.3px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+  user-select:none;
+}
+.data-table th.num{text-align:right}
+.data-table td{
+  padding:9px 14px;
+  border-top:1px solid rgba(255,255,255,.04);
+  color:var(--txt-2);vertical-align:middle;
+  white-space:nowrap;
+}
+.data-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.data-table tbody tr:hover td{background:rgba(255,255,255,.025)}
+.data-table .key-col{color:var(--txt-1);font-weight:500}
+.data-table .link-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border-radius:3px;
+  background:var(--bg-hover);cursor:pointer;vertical-align:middle;
+  margin-left:4px;
+}
+.data-table .link-icon svg{width:10px;height:10px;stroke:var(--txt-3);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* 배지 */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 7px;border-radius:4px;
+  font-size:11px;font-weight:500;
+}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-blue{background:var(--blue-bg);color:var(--blue)}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* ══ KPI 카드 그리드 ══ */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-bottom:20px;
+}
+.kpi-card{
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  border-radius:var(--rl);
+  padding:16px 18px;
+  transition:border-color .15s;
+}
+.kpi-card:hover{border-color:var(--border-lt)}
+.kpi-label{font-size:11px;font-weight:600;color:var(--txt-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.kpi-val{font-size:22px;font-weight:700;color:var(--txt-1);letter-spacing:-.5px;line-height:1}
+.kpi-delta{
+  display:flex;align-items:center;gap:4px;
+  margin-top:6px;font-size:11px;font-weight:500;
+}
+.kpi-delta.up{color:var(--green)}
+.kpi-delta.dn{color:var(--red)}
+.kpi-delta svg{width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.kpi-delta-label{color:var(--txt-3);font-weight:400}
+
+/* ══ 2컬럼 그리드 ══ */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+
+/* ══ 패널 카드 ══ */
+.panel{
+  background:var(--bg-panel);
+  border:1px solid var(--border);
+  border-radius:var(--rl);
+  overflow:hidden;
+}
+.panel-header{
+  display:flex;align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  gap:8px;
+}
+.panel-title{font-size:13px;font-weight:600;color:var(--txt-1)}
+.panel-sub{font-size:11px;color:var(--txt-3);margin-left:auto}
+.panel-body{padding:16px}
+
+/* ══ 미니 차트 (CSS 바) ══ */
+.bar-chart{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-label{font-size:11px;color:var(--txt-2);width:80px;flex-shrink:0}
+.bar-track{flex:1;height:6px;background:var(--bg-card);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.bar-val{font-size:11px;color:var(--txt-2);width:44px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* ══ 리스크 게이지 ══ */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.gauge-arc{
+  width:120px;height:64px;
+  border:8px solid var(--bg-card);
+  border-bottom:none;
+  border-radius:60px 60px 0 0;
+  position:relative;
+  overflow:hidden;
+}
+.gauge-fill{
+  position:absolute;bottom:0;left:0;right:0;
+  height:100%;
+  border-radius:60px 60px 0 0;
+  transform-origin:bottom center;
+}
+.gauge-label{font-size:22px;font-weight:700;color:var(--txt-1);margin-top:6px}
+.gauge-sub{font-size:11px;color:var(--txt-3)}
+
+/* ══ 세션 로그 ══ */
+.session-list{display:flex;flex-direction:column;gap:0}
+.session-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:12px;
+}
+.session-row:last-child{border-bottom:none}
+.session-icon{
+  width:28px;height:28px;
+  background:var(--bg-card);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.session-icon svg{width:13px;height:13px;stroke:var(--blue);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.session-info{flex:1}
+.session-title{font-size:12px;font-weight:500;color:var(--txt-1)}
+.session-meta{font-size:11px;color:var(--txt-3);margin-top:1px}
+.session-time{font-size:11px;color:var(--txt-3)}
+
+/* ══ 자산 배분 도넛 (CSS) ══ */
+.donut-wrap{display:flex;align-items:center;gap:20px;padding:8px 0}
+.donut{
+  width:80px;height:80px;
+  border-radius:50%;
+  background:conic-gradient(
+    var(--brand)  0% 35%,
+    var(--green)  35% 55%,
+    var(--amber)  55% 70%,
+    #8b5cf6       70% 82%,
+    var(--red)    82% 92%,
+    var(--txt-3)  92% 100%
+  );
+  flex-shrink:0;
+  position:relative;
+}
+.donut::after{
+  content:'';position:absolute;inset:16px;
+  background:var(--bg-panel);border-radius:50%;
+}
+.donut-legend{display:flex;flex-direction:column;gap:5px;flex:1}
+.legend-row{display:flex;align-items:center;gap:6px;font-size:11px}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.legend-name{color:var(--txt-2);flex:1}
+.legend-pct{color:var(--txt-1);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ══ RLS Policy 배지 (Supabase 디테일) ══ */
+.rls-indicator{
+  display:flex;align-items:center;gap:5px;
+  background:var(--amber-bg);color:var(--amber);
+  border:1px solid rgba(245,158,11,.2);
+  border-radius:4px;padding:2px 8px;
+  font-size:10px;font-weight:600;cursor:default;
+}
+.rls-indicator svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══ 탭 콘텐츠 ══ */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ══ 스크롤바 ══ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ 사이드바 ══ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">
+      <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    </div>
+    <span class="sb-logo-text">K-Stock</span>
+  </div>
+
+  <div class="sb-section">프로젝트</div>
+  <div class="sb-nav">
+    <button class="sb-item active" onclick="showTab('overview')">
+      <svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      <span class="sb-item-label">개요</span>
+    </button>
+    <button class="sb-item" onclick="showTab('portfolio')">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sb-item-label">포트폴리오</span>
+    </button>
+    <button class="sb-item" onclick="showTab('sessions')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="sb-item-label">상담 기록</span>
+    </button>
+    <button class="sb-item" onclick="showTab('tax')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="sb-item-label">절세 시뮬레이션</span>
+    </button>
+    <button class="sb-item" onclick="showTab('alerts')">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="sb-item-label">알림</span>
+    </button>
+
+    <div class="sb-section">설정</div>
+    <button class="sb-item" onclick="showTab('security')">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="sb-item-label">보안</span>
+    </button>
+  </div>
+
+  <div class="sb-bottom">
+    <button class="sb-item" onclick="window.opener ? window.close() : window.location.href='desktop.html'">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+      <span class="sb-item-label">K-Stock 홈</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ══ 콘텐츠 ══ -->
+<div class="content">
+
+  <!-- 상단 바 -->
+  <div class="topbar">
+    <div class="topbar-tabs">
+      <div class="tab active" onclick="showTab('overview',this)">Table Editor</div>
+      <div class="tab" onclick="showTab('portfolio',this)">Portfolio</div>
+      <div class="tab" onclick="showTab('sessions',this)">Sessions</div>
+      <div class="tab" onclick="showTab('tax',this)">Tax</div>
+      <div class="tab" onclick="showTab('alerts',this)">Alerts</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-badge">
+        <span class="dot"></span>
+        PRODUCTION
+      </div>
+      <div class="rls-indicator">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        RLS 활성
+      </div>
+      <button class="icon-btn" title="새로고침" onclick="refreshData()">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+      <button class="btn-sm btn-sm-primary" onclick="openAI()">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        AI 상담
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ 페이지 영역 ══ -->
+  <div class="page">
+
+    <!-- ── 개요 탭 ── -->
+    <div class="tab-content active" id="tab-overview">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">대시보드 개요</div>
+          <div class="page-sub">포트폴리오 현황 · 2026년 6월 1일 기준</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm btn-sm-ghost">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            내보내기
+          </button>
+          <button class="btn-sm btn-sm-primary">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            자산 추가
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">총 자산</div>
+          <div class="kpi-val">₩ 142.8M</div>
+          <div class="kpi-delta up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            +3.2% <span class="kpi-delta-label">이번 달</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">실현 수익</div>
+          <div class="kpi-val" style="color:var(--green)">+₩ 4.56M</div>
+          <div class="kpi-delta up">
+            <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            +12.4% <span class="kpi-delta-label">YTD</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">리밸런싱 이탈도</div>
+          <div class="kpi-val" style="color:var(--amber)">+3.8%</div>
+          <div class="kpi-delta" style="color:var(--amber);display:flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            허용 범위 내 <span class="kpi-delta-label">(±5%)</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">절세 예상 효과</div>
+          <div class="kpi-val" style="color:var(--blue)">₩ 1.48M</div>
+          <div class="kpi-delta" style="color:var(--blue);display:flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            연간 예상 <span class="kpi-delta-label">절세 효과</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 자산 테이블 (Supabase Table Editor 스타일) -->
+      <div class="filter-bar">
+        <div class="filter-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="filter-input" placeholder="자산명, 종목코드로 검색…" id="asset-search" oninput="filterAssets()">
+        </div>
+        <div class="filter-divider"></div>
+        <button class="filter-chip active" onclick="toggleFilter(this,'all')">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          전체
+        </button>
+        <button class="filter-chip" onclick="toggleFilter(this,'주식')">주식</button>
+        <button class="filter-chip" onclick="toggleFilter(this,'채권')">채권</button>
+        <button class="filter-chip" onclick="toggleFilter(this,'대체')">대체</button>
+        <div class="filter-divider"></div>
+        <div class="rls-indicator">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          1 RLS policy
+        </div>
+        <span style="font-size:11px;color:var(--txt-3)">Role: postgres</span>
+        <button class="icon-btn" style="margin-left:auto" onclick="refreshData()">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </button>
+        <button class="btn-sm btn-sm-primary">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Insert
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="asset-table">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" style="accent-color:var(--brand)"></th>
+              <th>id <span style="color:var(--txt-3);font-weight:400">int8</span></th>
+              <th>asset_name <span style="color:var(--txt-3);font-weight:400">text</span></th>
+              <th>ticker <span style="color:var(--txt-3);font-weight:400">text</span></th>
+              <th>category <span style="color:var(--txt-3);font-weight:400">text</span></th>
+              <th class="num">weight <span style="color:var(--txt-3);font-weight:400">float4</span></th>
+              <th class="num">value_krw <span style="color:var(--txt-3);font-weight:400">int8</span></th>
+              <th class="num">return_ytd <span style="color:var(--txt-3);font-weight:400">float4</span></th>
+              <th>status <span style="color:var(--txt-3);font-weight:400">text</span></th>
+            </tr>
+          </thead>
+          <tbody id="asset-tbody">
+            <!-- JS로 채움 -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 2컬럼 패널 -->
+      <div class="two-col">
+
+        <!-- 자산 배분 -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">자산 배분</div>
+            <div class="panel-sub">현재 포트폴리오</div>
+          </div>
+          <div class="panel-body">
+            <div class="donut-wrap">
+              <div class="donut"></div>
+              <div class="donut-legend">
+                <div class="legend-row"><div class="legend-dot" style="background:var(--brand)"></div><span class="legend-name">국내·미국 주식</span><span class="legend-pct">35%</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:var(--green)"></div><span class="legend-name">ETF</span><span class="legend-pct">20%</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:var(--amber)"></div><span class="legend-name">채권</span><span class="legend-pct">15%</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#8b5cf6"></div><span class="legend-name">리츠</span><span class="legend-pct">12%</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:var(--red)"></div><span class="legend-name">원자재</span><span class="legend-pct">10%</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:var(--txt-3)"></div><span class="legend-name">기타</span><span class="legend-pct">8%</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5차원 재무 역량 -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">5차원 재무 역량</div>
+            <div class="panel-sub">이번 분기</div>
+          </div>
+          <div class="panel-body">
+            <div class="bar-chart">
+              <div class="bar-row">
+                <span class="bar-label">유동성</span>
+                <div class="bar-track"><div class="bar-fill" style="width:82%;background:var(--green)"></div></div>
+                <span class="bar-val">82</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">성장성</span>
+                <div class="bar-track"><div class="bar-fill" style="width:74%;background:var(--brand)"></div></div>
+                <span class="bar-val">74</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">안정성</span>
+                <div class="bar-track"><div class="bar-fill" style="width:79%;background:var(--blue)"></div></div>
+                <span class="bar-val">79</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">절세</span>
+                <div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--amber)"></div></div>
+                <span class="bar-val">65</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label">승계</span>
+                <div class="bar-track"><div class="bar-fill" style="width:48%;background:#8b5cf6"></div></div>
+                <span class="bar-val">48</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div><!-- /tab-overview -->
+
+    <!-- ── 포트폴리오 탭 ── -->
+    <div class="tab-content" id="tab-portfolio">
+      <div class="page-header">
+        <div>
+          <div class="page-title">포트폴리오</div>
+          <div class="page-sub">자산군별 상세 현황 · public.portfolio_assets</div>
+        </div>
+        <button class="btn-sm btn-sm-primary">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          자산 추가
+        </button>
+      </div>
+      <div class="filter-bar" style="margin-top:0">
+        <div class="filter-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="filter-input" placeholder="자산명, user_guid, ticker… 또는 AI에게 질문">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="rls-indicator"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>1 RLS policy</div>
+        <span style="font-size:11px;color:var(--txt-3)">Role: postgres</span>
+        <button class="icon-btn" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+        <button class="btn-sm btn-sm-primary"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Insert</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" style="accent-color:var(--brand)"></th>
+              <th>id <span style="color:var(--txt-3);font-weight:400">int8</span></th>
+              <th>user_guid <span style="color:var(--txt-3);font-weight:400">text</span></th>
+              <th>asset_id <span style="color:var(--txt-3);font-weight:400">int2</span></th>
+              <th class="num">target_weight <span style="color:var(--txt-3);font-weight:400">float4</span></th>
+              <th class="num">actual_weight <span style="color:var(--txt-3);font-weight:400">float4</span></th>
+              <th class="num">deviation <span style="color:var(--txt-3);font-weight:400">float4</span></th>
+              <th>rebalance_flag <span style="color:var(--txt-3);font-weight:400">bool</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+              <td class="key-col">4</td>
+              <td>2601:db80:test:0001:0002:0003:… <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+              <td>2</td>
+              <td class="num">35.00</td>
+              <td class="num">37.80</td>
+              <td class="num" style="color:var(--amber)">+2.80</td>
+              <td><span class="badge badge-amber"><span class="badge-dot"></span>검토</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+              <td class="key-col">5</td>
+              <td>2601:db80:test:0001:0002:0003:… <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+              <td>4</td>
+              <td class="num">20.00</td>
+              <td class="num">19.50</td>
+              <td class="num" style="color:var(--green)">-0.50</td>
+              <td><span class="badge badge-green"><span class="badge-dot"></span>정상</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+              <td class="key-col">6</td>
+              <td>2601:db80:test:0001:0002:0003:… <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+              <td>3</td>
+              <td class="num">15.00</td>
+              <td class="num">16.20</td>
+              <td class="num" style="color:var(--amber)">+1.20</td>
+              <td><span class="badge badge-green"><span class="badge-dot"></span>정상</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 상담 기록 탭 ── -->
+    <div class="tab-content" id="tab-sessions">
+      <div class="page-header">
+        <div>
+          <div class="page-title">AI 상담 기록</div>
+          <div class="page-sub">고팡 PDV 연동 · public.stock_sessions</div>
+        </div>
+      </div>
+      <div class="filter-bar" style="margin-top:0">
+        <div class="filter-search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="filter-input" placeholder="id, user_guid, topics… 또는 AI에게 질문">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="rls-indicator"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>1 RLS policy</div>
+        <span style="font-size:11px;color:var(--txt-3)">Role: postgres</span>
+        <button class="icon-btn" style="margin-left:auto"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+        <button class="btn-sm btn-sm-primary"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Insert</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:32px"><input type="checkbox" style="accent-color:var(--brand)"></th>
+              <th>id <span style="color:var(--txt-3);font-weight:400">int8</span></th>
+              <th>user_guid <span style="color:var(--txt-3);font-weight:400">text</span></th>
+              <th>session_date <span style="color:var(--txt-3);font-weight:400">timestamptz</span></th>
+              <th class="num">duration_min <span style="color:var(--txt-3);font-weight:400">int2</span></th>
+              <th class="num">msg_count <span style="color:var(--txt-3);font-weight:400">int2</span></th>
+              <th>topics <span style="color:var(--txt-3);font-weight:400">text</span></th>
+              <th>pdv_status <span style="color:var(--txt-3);font-weight:400">text</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+              <td class="key-col">12</td>
+              <td>2601:db80:test:0001:… <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+              <td>2026-06-01 09:14</td>
+              <td class="num">23</td>
+              <td class="num">18</td>
+              <td>주식·리밸런싱</td>
+              <td><span class="badge badge-green"><span class="badge-dot"></span>전송완료</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+              <td class="key-col">11</td>
+              <td>2601:db80:test:0001:… <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+              <td>2026-05-28 14:32</td>
+              <td class="num">15</td>
+              <td class="num">12</td>
+              <td>절세·IRP</td>
+              <td><span class="badge badge-green"><span class="badge-dot"></span>전송완료</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+              <td class="key-col">10</td>
+              <td>2601:db80:test:0001:… <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+              <td>2026-05-21 11:05</td>
+              <td class="num">31</td>
+              <td class="num">24</td>
+              <td>채권·원자재·달러</td>
+              <td><span class="badge badge-green"><span class="badge-dot"></span>전송완료</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 절세 시뮬레이션 탭 ── -->
+    <div class="tab-content" id="tab-tax">
+      <div class="page-header">
+        <div>
+          <div class="page-title">절세 시뮬레이션</div>
+          <div class="page-sub">2026년 종합소득세 · 양도세 · 금융소득종합과세 자동 계산</div>
+        </div>
+      </div>
+      <div class="kpi-grid" style="margin-bottom:16px">
+        <div class="kpi-card">
+          <div class="kpi-label">예상 절세 효과</div>
+          <div class="kpi-val" style="color:var(--green)">₩ 1.48M</div>
+          <div class="kpi-delta up"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>전년 대비 +220만원</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">IRP 한도 잔여</div>
+          <div class="kpi-val" style="color:var(--blue)">₩ 5.04M</div>
+          <div class="kpi-delta" style="color:var(--txt-3)">연간 한도 9백만원 기준</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">금융소득 합산</div>
+          <div class="kpi-val" style="color:var(--amber)">₩ 18.2M</div>
+          <div class="kpi-delta" style="color:var(--amber);display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>종합과세 기준 근접</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">양도세 예상</div>
+          <div class="kpi-val" style="color:var(--red)">₩ 0.84M</div>
+          <div class="kpi-delta dn"><svg viewBox="0 0 24 24"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>손실 상계 후 최적화 중</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">절세 전략 항목</div>
+          <div class="panel-sub">AI 자동 계산 · 2026-06-01</div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>항목</th>
+                <th>현황</th>
+                <th class="num">절세 효과</th>
+                <th>상태</th>
+                <th>권장 조치</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="key-col">IRP 추가 납입</td><td>₩ 3.96M / 9M</td><td class="num" style="color:var(--green)">+₩ 593K</td><td><span class="badge badge-amber"><span class="badge-dot"></span>진행중</span></td><td style="color:var(--txt-2)">5.04M 추가 납입 권장</td></tr>
+              <tr><td class="key-col">ISA 계좌 활용</td><td>₩ 12M / 20M</td><td class="num" style="color:var(--green)">+₩ 480K</td><td><span class="badge badge-green"><span class="badge-dot"></span>활성</span></td><td style="color:var(--txt-2)">8M 한도 잔여</td></tr>
+              <tr><td class="key-col">손실 상계</td><td>-₩ 2.1M</td><td class="num" style="color:var(--green)">+₩ 315K</td><td><span class="badge badge-blue"><span class="badge-dot"></span>분석중</span></td><td style="color:var(--txt-2)">해외 ETF 손실 활용</td></tr>
+              <tr><td class="key-col">배당 분산</td><td>₩ 4.8M</td><td class="num" style="color:var(--green)">+₩ 92K</td><td><span class="badge badge-green"><span class="badge-dot"></span>완료</span></td><td style="color:var(--txt-2)">2인 분산 완료</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 알림 탭 ── -->
+    <div class="tab-content" id="tab-alerts">
+      <div class="page-header">
+        <div>
+          <div class="page-title">알림</div>
+          <div class="page-sub">리밸런싱 · 세금 · 시장 이벤트</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0">
+          <div class="session-list" style="padding:0 16px">
+            <div class="session-row">
+              <div class="session-icon" style="background:var(--amber-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--amber)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+              <div class="session-info"><div class="session-title">리밸런싱 검토 권장</div><div class="session-meta">국내주식 비중 +2.8% 이탈 · 허용 범위 ±5% 접근 중</div></div>
+              <span class="session-time">10분 전</span>
+            </div>
+            <div class="session-row">
+              <div class="session-icon" style="background:var(--blue-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--blue)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div class="session-info"><div class="session-title">IRP 납입 한도 잔여</div><div class="session-meta">₩5.04M 추가 납입 가능 · 연말 전 납입 시 세액공제 혜택</div></div>
+              <span class="session-time">2시간 전</span>
+            </div>
+            <div class="session-row">
+              <div class="session-icon" style="background:var(--green-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--green)"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+              <div class="session-info"><div class="session-title">월간 보고서 생성 완료</div><div class="session-meta">2026년 5월 포트폴리오 성과: +3.2% · 고팡 PDV 저장 완료</div></div>
+              <span class="session-time">어제</span>
+            </div>
+            <div class="session-row">
+              <div class="session-icon" style="background:var(--red-bg)"><svg viewBox="0 0 24 24" style="stroke:var(--red)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <div class="session-info"><div class="session-title">금융소득 종합과세 기준 접근</div><div class="session-meta">연간 금융소득 ₩18.2M · 기준 ₩20M 근접 · 분산 전략 권장</div></div>
+              <span class="session-time">3일 전</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 보안 탭 ── -->
+    <div class="tab-content" id="tab-security">
+      <div class="page-header">
+        <div>
+          <div class="page-title">보안</div>
+          <div class="page-sub">OpenHash · RLS · 암호화 상태</div>
+        </div>
+      </div>
+      <div class="kpi-grid" style="margin-bottom:16px">
+        <div class="kpi-card"><div class="kpi-label">OpenHash 상태</div><div class="kpi-val" style="color:var(--green);font-size:16px;margin-top:4px"><span class="badge badge-green" style="font-size:13px"><span class="badge-dot"></span>활성</span></div><div class="kpi-delta" style="color:var(--txt-3)">분산 원장 동기화 완료</div></div>
+        <div class="kpi-card"><div class="kpi-label">암호화</div><div class="kpi-val" style="font-size:14px;margin-top:4px">AES-256-GCM</div><div class="kpi-delta" style="color:var(--txt-3)">Paillier 동형암호 적용</div></div>
+        <div class="kpi-card"><div class="kpi-label">RLS Policy</div><div class="kpi-val" style="font-size:14px;margin-top:4px">1 Active</div><div class="kpi-delta" style="color:var(--txt-3)">GDPR 준수 · k≥5</div></div>
+        <div class="kpi-card"><div class="kpi-label">마지막 감사</div><div class="kpi-val" style="font-size:14px;margin-top:4px">2026-06-01</div><div class="kpi-delta up"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>이상 없음</div></div>
+      </div>
+    </div>
+
+  </div><!-- /page -->
+</div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ── 자산 데이터 ──────────────────────────────────────────
+const ASSETS = [
+  { id:1, name:'삼성전자',       ticker:'005930.KS', cat:'주식',  w:14.2, val:20257000, ret:+8.4,  status:'정상' },
+  { id:2, name:'TIGER 미국S&P500',ticker:'360750.KS',cat:'ETF',   w:11.8, val:16831000, ret:+15.2, status:'정상' },
+  { id:3, name:'국고채 3년',      ticker:'KR2010024',  cat:'채권',  w:9.6,  val:13703000, ret:+1.2,  status:'정상' },
+  { id:4, name:'KODEX 미국부동산',ticker:'352560.KS',cat:'리츠',  w:8.4,  val:11983000, ret:-2.1,  status:'검토' },
+  { id:5, name:'GOLD ETF',       ticker:'132030.KS', cat:'원자재', w:6.2,  val:8845000,  ret:+4.7,  status:'정상' },
+  { id:6, name:'SK하이닉스',     ticker:'000660.KS', cat:'주식',  w:5.8,  val:8277000,  ret:+22.3, status:'정상' },
+  { id:7, name:'USD/KRW 달러',   ticker:'USDKRW',    cat:'대체',  w:4.0,  val:5709000,  ret:-1.8,  status:'정상' },
+];
+
+let activeFilter = 'all';
+
+function renderAssets(data) {
+  const tbody = document.getElementById('asset-tbody');
+  tbody.innerHTML = data.map(a => `
+    <tr>
+      <td><input type="checkbox" style="accent-color:var(--brand)"></td>
+      <td class="key-col">${a.id}</td>
+      <td>${a.name} <span class="link-icon"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg></span></td>
+      <td style="color:var(--txt-3)">${a.ticker}</td>
+      <td>${a.cat}</td>
+      <td class="num">${a.w.toFixed(1)}</td>
+      <td class="num">${a.val.toLocaleString()}</td>
+      <td class="num" style="color:${a.ret>=0?'var(--green)':'var(--red)'}">${a.ret>=0?'+':''}${a.ret.toFixed(1)}%</td>
+      <td><span class="badge ${a.status==='정상'?'badge-green':'badge-amber'}"><span class="badge-dot"></span>${a.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+function filterAssets() {
+  const q = document.getElementById('asset-search').value.toLowerCase();
+  let data = ASSETS;
+  if (activeFilter !== 'all') data = data.filter(a => a.cat.includes(activeFilter));
+  if (q) data = data.filter(a => a.name.toLowerCase().includes(q) || a.ticker.toLowerCase().includes(q));
+  renderAssets(data);
+}
+
+function toggleFilter(el, cat) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterAssets();
+}
+
+// ── 탭 전환 ──────────────────────────────────────────────
+function showTab(id, tabEl) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id)?.classList.add('active');
+  // 사이드바 활성
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  // 탭바 활성
+  if (tabEl) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+  }
+}
+
+// ── 유틸 ──────────────────────────────────────────────────
+function refreshData() {
+  const btn = event.currentTarget;
+  btn.style.animation = 'spin .6s linear';
+  setTimeout(() => btn.style.animation = '', 700);
+  renderAssets(ASSETS);
+}
+function openAI() {
+  if (window.opener && !window.opener.closed) {
+    window.opener.openChat?.();
+    window.opener.focus();
+  } else {
+    window.open('webapp.html', '_blank');
+  }
+}
+
+// ── 초기화 ──────────────────────────────────────────────
+renderAssets(ASSETS);
+
+// 스핀 keyframe
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>

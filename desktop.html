@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>K-Stock — AI 자산관리 전문가와 함께하는 새로운 투자</title>
+<meta name="description" content="세상의 모든 자산을 분석하는 AI 전문가가 오직 나만을 위해, 24시간 함께합니다.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+<style>
+
+/* ══ 리셋 ══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:14px;line-height:1.6;
+  color:#1c1f26;background:#f8f9fb;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{text-decoration:none;color:inherit}
+button{font-family:'Inter',sans-serif;cursor:pointer;border:none}
+
+/* ══ 색상 변수 — Supabase 팔레트 기반 ══ */
+:root{
+  /* 브랜드 (Supabase 그린 → K-Stock 블루) */
+  --brand:       #2563eb;
+  --brand-dk:    #1d4ed8;
+  --brand-lt:    #eff6ff;
+  --brand-border:#bfdbfe;
+
+  /* 배경 계층 */
+  --bg-page:     #f8f9fb;
+  --bg-surface:  #ffffff;
+  --bg-subtle:   #f1f3f7;
+  --bg-muted:    #e8ebf0;
+
+  /* 텍스트 */
+  --txt-head:    #0f1117;
+  --txt-body:    #374151;
+  --txt-muted:   #6b7280;
+  --txt-faint:   #9ca3af;
+
+  /* 보더 */
+  --border:      #e5e7eb;
+  --border-dk:   #d1d5db;
+
+  /* 상태 색 */
+  --green:  #16a34a;
+  --green-bg:#f0fdf4;
+  --red:    #dc2626;
+  --red-bg: #fef2f2;
+  --amber:  #d97706;
+  --amber-bg:#fffbeb;
+
+  /* 간격 */
+  --radius-sm: 6px;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+/* ══ 사이드바 ══ */
+.sidebar{
+  position:fixed;top:0;left:0;
+  width:56px;height:100vh;
+  background:#0f1117;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:12px 0;
+  z-index:200;
+  transition:width .2s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+  border-right:1px solid rgba(255,255,255,.07);
+}
+.sidebar:hover{width:220px}
+
+.sidebar-logo{
+  display:flex;align-items:center;
+  width:100%;padding:0 14px;
+  margin-bottom:20px;
+  min-height:36px;
+  flex-shrink:0;
+}
+.logo-mark{
+  width:28px;height:28px;
+  background:var(--brand);
+  border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-mark svg{width:16px;height:16px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.logo-text{
+  font-size:15px;font-weight:800;color:#fff;
+  margin-left:10px;white-space:nowrap;
+  opacity:0;transition:opacity .15s;
+}
+.sidebar:hover .logo-text{opacity:1}
+
+.sidebar-nav{
+  flex:1;width:100%;
+  display:flex;flex-direction:column;
+  gap:2px;
+  padding:0 8px;
+}
+.nav-item{
+  display:flex;align-items:center;
+  width:100%;padding:8px 6px;
+  border-radius:var(--radius);
+  color:#9ca3af;
+  cursor:pointer;
+  transition:background .12s, color .12s;
+  position:relative;
+  white-space:nowrap;
+  background:none;border:none;
+  font-family:'Inter',sans-serif;
+  font-size:13px;font-weight:500;
+  text-align:left;
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#e5e7eb}
+.nav-item.active{background:rgba(37,99,235,.25);color:#93c5fd}
+.nav-item svg{
+  width:18px;height:18px;
+  stroke:currentColor;stroke-width:1.8;
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+  flex-shrink:0;
+}
+.nav-item-label{
+  margin-left:10px;
+  opacity:0;transition:opacity .15s;
+}
+.sidebar:hover .nav-item-label{opacity:1}
+
+.nav-section-label{
+  font-size:10px;font-weight:600;
+  color:#4b5563;letter-spacing:.8px;
+  text-transform:uppercase;
+  padding:12px 14px 4px;
+  white-space:nowrap;
+  opacity:0;transition:opacity .15s;
+}
+.sidebar:hover .nav-section-label{opacity:1}
+
+.sidebar-bottom{
+  width:100%;padding:8px;
+  border-top:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;gap:2px;
+}
+
+/* ══ 메인 레이아웃 ══ */
+.main-wrap{
+  margin-left:56px;
+  min-height:100vh;
+  transition:margin-left .2s;
+}
+
+/* ══ 상단 네비 바 ══ */
+.topnav{
+  position:sticky;top:0;z-index:100;
+  height:52px;
+  background:rgba(248,249,251,.9);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 24px;gap:12px;
+}
+.topnav-title{
+  font-size:14px;font-weight:600;color:var(--txt-head);
+}
+.topnav-breadcrumb{
+  font-size:13px;color:var(--txt-muted);
+  display:flex;align-items:center;gap:6px;
+}
+.topnav-breadcrumb span{color:var(--txt-faint)}
+.topnav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius);
+  font-size:13px;font-weight:500;
+  transition:all .15s;cursor:pointer;border:none;
+  font-family:'Inter',sans-serif;
+}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-dk)}
+.btn-ghost{background:transparent;color:var(--txt-body);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg-subtle);border-color:var(--border-dk)}
+.btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══ 히어로 ══ */
+.hero{
+  padding:64px 40px 56px;
+  max-width:960px;
+  margin:0 auto;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--brand-lt);
+  border:1px solid var(--brand-border);
+  color:var(--brand);
+  border-radius:20px;
+  padding:4px 12px;
+  font-size:12px;font-weight:600;
+  margin-bottom:20px;
+  letter-spacing:.2px;
+}
+.hero-eyebrow .pulse{
+  width:6px;height:6px;border-radius:50%;background:var(--brand);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero h1{
+  font-size:clamp(28px,3.5vw,48px);
+  font-weight:800;line-height:1.2;
+  letter-spacing:-1.5px;
+  color:var(--txt-head);
+  margin-bottom:16px;
+}
+.hero h1 .hl{color:var(--brand)}
+.hero-sub{
+  font-size:16px;color:var(--txt-muted);
+  max-width:540px;line-height:1.7;
+  margin-bottom:28px;
+}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* 히어로 스탯 카드 */
+.hero-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-top:48px;
+  max-width:960px;
+  margin-left:auto;margin-right:auto;
+  padding:0 40px;
+}
+.stat-card{
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:18px 20px;
+}
+.stat-card-num{
+  font-size:26px;font-weight:800;
+  color:var(--txt-head);letter-spacing:-1px;
+}
+.stat-card-num .u{font-size:.55em;color:var(--brand);font-weight:700}
+.stat-card-label{font-size:12px;color:var(--txt-muted);margin-top:3px}
+.stat-card-badge{
+  display:inline-block;margin-top:8px;
+  background:var(--brand-lt);color:var(--brand);
+  border-radius:4px;padding:2px 6px;
+  font-size:10px;font-weight:600;
+}
+
+/* ══ 섹션 공통 ══ */
+section{padding:64px 40px}
+.section-inner{max-width:960px;margin:0 auto}
+.section-eyebrow{
+  font-size:11px;font-weight:700;
+  color:var(--brand);letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.section-eyebrow::before{
+  content:'';width:16px;height:2px;background:var(--brand);
+  border-radius:1px;
+}
+.section-title{
+  font-size:clamp(20px,2.5vw,30px);
+  font-weight:700;color:var(--txt-head);
+  letter-spacing:-.5px;margin-bottom:8px;
+}
+.section-sub{
+  font-size:14px;color:var(--txt-muted);
+  max-width:520px;line-height:1.7;
+}
+
+/* ══ 구분선 섹션 ══ */
+.section-divider{
+  height:1px;background:var(--border);
+  margin:0 40px;max-width:calc(960px);
+  margin-left:auto;margin-right:auto;
+}
+
+/* ══ 비교표 ══ */
+.compare-wrap{background:var(--bg-surface)}
+.compare-table{
+  width:100%;border-collapse:collapse;
+  margin-top:32px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+  font-size:13px;
+}
+.compare-table thead tr{background:var(--bg-subtle)}
+.compare-table th{
+  padding:12px 16px;text-align:center;
+  font-size:12px;font-weight:600;color:var(--txt-muted);
+  letter-spacing:.3px;text-transform:uppercase;
+  border-bottom:1px solid var(--border);
+}
+.compare-table th:first-child{text-align:left;width:220px}
+.th-new{
+  background:var(--brand-lt) !important;
+  color:var(--brand) !important;
+}
+.compare-table td{
+  padding:11px 16px;
+  border-top:1px solid var(--border);
+  color:var(--txt-body);vertical-align:middle;
+}
+.compare-table td:first-child{
+  font-weight:500;color:var(--txt-head);
+  background:var(--bg-subtle);
+}
+.compare-table td:nth-child(2){text-align:center;color:var(--txt-muted)}
+.compare-table td:nth-child(3){
+  text-align:center;color:var(--brand);
+  font-weight:600;background:rgba(37,99,235,.04);
+}
+.compare-table tbody tr:hover{background:var(--bg-subtle)}
+.check{color:var(--green)}
+.cross{color:var(--txt-faint)}
+
+/* ══ 특징 카드 ══ */
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;margin-top:32px;
+}
+.feature-card{
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-xl);
+  padding:24px;
+  transition:border-color .2s, box-shadow .2s;
+}
+.feature-card:hover{
+  border-color:var(--brand-border);
+  box-shadow:0 4px 16px rgba(37,99,235,.08);
+}
+.feature-icon{
+  width:36px;height:36px;
+  border-radius:var(--radius);
+  background:var(--bg-subtle);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+}
+.feature-icon svg{
+  width:18px;height:18px;
+  stroke:var(--brand);stroke-width:1.8;
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+}
+.feature-card h3{font-size:14px;font-weight:600;color:var(--txt-head);margin-bottom:6px}
+.feature-card p{font-size:13px;color:var(--txt-muted);line-height:1.65}
+.feature-source{
+  margin-top:12px;padding:6px 10px;
+  background:var(--bg-subtle);
+  border-radius:var(--radius-sm);
+  border-left:2px solid var(--brand);
+  font-size:11px;color:var(--txt-muted);line-height:1.5;
+}
+
+/* ══ 작동 방식 (다크 섹션) ══ */
+.how-section{
+  background:#0f1117;
+}
+.how-section .section-title{color:#f1f5f9}
+.how-section .section-sub{color:#6b7280}
+.how-section .section-eyebrow{color:#60a5fa}
+.how-section .section-eyebrow::before{background:#60a5fa}
+
+.steps-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:1px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--radius-xl);
+  overflow:hidden;
+  margin-top:32px;
+}
+.step-cell{
+  background:#0f1117;
+  padding:24px;
+  display:flex;gap:16px;
+}
+.step-cell:hover{background:rgba(255,255,255,.03)}
+.step-num{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--brand);color:#fff;
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.step-body h4{font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:4px}
+.step-body p{font-size:12px;color:#6b7280;line-height:1.6}
+.step-badge{
+  display:inline-block;margin-top:8px;
+  background:rgba(37,99,235,.2);color:#93c5fd;
+  border:1px solid rgba(37,99,235,.3);
+  border-radius:4px;padding:2px 8px;
+  font-size:10px;font-weight:600;letter-spacing:.2px;
+}
+
+/* ══ 균형점 섹션 ══ */
+.balance-section{background:var(--bg-subtle)}
+.balance-grid{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:20px;align-items:center;margin-top:32px;
+}
+.balance-card{
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-xl);
+  padding:24px;
+}
+.balance-card h4{
+  font-size:12px;font-weight:600;
+  color:var(--txt-muted);text-transform:uppercase;letter-spacing:.5px;
+  margin-bottom:14px;
+}
+.balance-row{
+  display:flex;justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.balance-row:last-of-type{border-bottom:none}
+.balance-row span:first-child{color:var(--txt-body)}
+.balance-row span:last-child{font-weight:600;color:var(--brand)}
+.balance-idx{
+  margin-top:14px;padding-top:12px;
+  border-top:2px solid var(--brand);
+  text-align:center;
+}
+.balance-idx-num{font-size:24px;font-weight:800;color:var(--brand)}
+.balance-idx-label{font-size:11px;color:var(--txt-muted)}
+.balance-center-box{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:16px;
+}
+.balance-icon{
+  width:48px;height:48px;
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.balance-icon svg{width:22px;height:22px;stroke:var(--brand);stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.balance-u{font-size:14px;font-weight:700;color:var(--brand)}
+.balance-note{font-size:11px;color:var(--txt-muted);text-align:center;line-height:1.4}
+
+/* ══ 보고 체계 ══ */
+.report-section{background:var(--bg-surface)}
+.report-flow{
+  display:flex;flex-wrap:wrap;
+  gap:8px;align-items:center;
+  margin-top:28px;
+}
+.report-node{
+  background:var(--bg-subtle);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:12px 16px;
+  text-align:center;
+  font-size:12px;font-weight:500;
+  color:var(--txt-body);
+}
+.report-node svg{
+  width:18px;height:18px;
+  stroke:var(--txt-muted);
+  stroke-width:1.8;fill:none;
+  stroke-linecap:round;stroke-linejoin:round;
+  display:block;margin:0 auto 5px;
+}
+.report-node.highlight{
+  background:var(--brand-lt);
+  border-color:var(--brand-border);
+  color:var(--brand);
+}
+.report-node.highlight svg{stroke:var(--brand)}
+.report-arrow{
+  color:var(--txt-faint);font-size:16px;
+}
+.report-cards{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-top:20px;
+}
+.report-card{
+  background:var(--bg-subtle);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:16px;
+}
+.report-card-icon svg{width:16px;height:16px;stroke:var(--brand);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;margin-bottom:8px}
+.report-card h5{font-size:13px;font-weight:600;color:var(--txt-head);margin-bottom:4px}
+.report-card p{font-size:12px;color:var(--txt-muted);line-height:1.5}
+
+/* ══ 보안 섹션 ══ */
+.security-section{background:#0f1117}
+.security-section .section-title{color:#f1f5f9}
+.security-section .section-sub{color:#6b7280}
+.security-section .section-eyebrow{color:#60a5fa}
+.security-section .section-eyebrow::before{background:#60a5fa}
+.security-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-top:28px;
+}
+.security-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:var(--radius-lg);
+  padding:18px;
+}
+.security-card svg{width:18px;height:18px;stroke:#60a5fa;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;margin-bottom:10px}
+.security-card h4{font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:5px}
+.security-card p{font-size:12px;color:#6b7280;line-height:1.6}
+
+/* ══ 논문 인용 ══ */
+.cite-section{background:var(--bg-subtle)}
+.cite-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:14px;margin-top:28px;
+}
+.cite-card{
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:18px;
+}
+.cite-source{
+  font-size:10px;font-weight:700;
+  color:var(--brand);text-transform:uppercase;
+  letter-spacing:.6px;margin-bottom:6px;
+}
+.cite-text{
+  font-size:13px;color:var(--txt-body);
+  line-height:1.65;margin-bottom:8px;
+  font-style:italic;
+}
+.cite-ref{font-size:11px;color:var(--txt-faint)}
+
+/* ══ CTA ══ */
+.cta-section{
+  background:linear-gradient(135deg,#0f1117 0%,#1e2a4a 100%);
+  text-align:center;padding:80px 40px;
+}
+.cta-section h2{
+  font-size:clamp(22px,3vw,36px);font-weight:800;
+  color:#f1f5f9;letter-spacing:-1px;margin-bottom:12px;
+}
+.cta-section p{font-size:15px;color:#6b7280;margin-bottom:28px}
+
+/* ══ 푸터 ══ */
+footer{
+  background:#0f1117;
+  color:#374151;
+  border-top:1px solid rgba(255,255,255,.06);
+  padding:24px 40px;
+  display:flex;align-items:center;gap:16px;
+  font-size:12px;
+}
+.footer-logo{display:flex;align-items:center;gap:8px;color:#6b7280;font-weight:600}
+.footer-links{margin-left:auto;display:flex;gap:16px}
+.footer-links a{color:#4b5563;transition:color .12s}
+.footer-links a:hover{color:#9ca3af}
+
+/* ══ 모바일 하단 네비 ══ */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg-surface);
+  border-top:1px solid var(--border);
+  display:none;
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  z-index:100;
+}
+.bottom-nav-items{display:flex;justify-content:space-around}
+.bn-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 12px;cursor:pointer;color:var(--txt-muted);
+  font-size:10px;font-weight:500;
+  background:none;border:none;
+  transition:color .15s;
+}
+.bn-item.active,.bn-item:hover{color:var(--brand)}
+.bn-item svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══ AI 채팅 오버레이 ══ */
+.chat-overlay{
+  display:none;position:fixed;inset:0;
+  background:#fff;z-index:300;
+  flex-direction:column;
+  animation:slideUp .25s ease;
+}
+.chat-overlay.open{display:flex}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+
+.chat-topbar{
+  background:var(--bg-surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  padding:0 16px;height:52px;flex-shrink:0;
+}
+.chat-close{
+  background:var(--bg-subtle);border:1px solid var(--border);
+  border-radius:var(--radius);padding:5px 10px;
+  font-size:12px;font-weight:500;color:var(--txt-body);
+  cursor:pointer;display:flex;align-items:center;gap:4px;
+}
+.chat-body{
+  flex:1;overflow-y:auto;
+  padding:16px;display:flex;flex-direction:column;gap:10px;
+  background:var(--bg-subtle);
+}
+.chat-bubble-ai{
+  max-width:85%;align-self:flex-start;
+  background:var(--bg-surface);border:1px solid var(--border);
+  border-radius:4px 14px 14px 14px;
+  padding:11px 14px;font-size:14px;line-height:1.6;color:var(--txt-head);
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
+}
+.chat-bubble-user{
+  max-width:85%;align-self:flex-end;
+  background:var(--brand);color:#fff;
+  border-radius:14px 14px 4px 14px;
+  padding:11px 14px;font-size:14px;line-height:1.6;
+}
+.chat-input-area{
+  border-top:1px solid var(--border);background:var(--bg-surface);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  display:flex;gap:8px;align-items:flex-end;flex-shrink:0;
+}
+.chat-input{
+  flex:1;background:var(--bg-subtle);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:10px 14px;font-family:'Inter',sans-serif;font-size:14px;
+  resize:none;outline:none;max-height:120px;
+  transition:border-color .15s;
+}
+.chat-input:focus{border-color:var(--brand);background:#fff}
+.chat-send{
+  width:38px;height:38px;border-radius:var(--radius-lg);
+  background:var(--brand);color:#fff;
+  border:none;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.chat-send:hover{background:var(--brand-dk)}
+.chat-send:disabled{background:var(--bg-muted);cursor:not-allowed}
+.chat-send svg{width:16px;height:16px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ══ 반응형 ══ */
+@media(max-width:1024px){
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+  .security-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .main-wrap{margin-left:0}
+  .hero,.section-inner,section{padding-left:20px;padding-right:20px}
+  .hero-stats{padding:0 20px}
+  .balance-grid{grid-template-columns:1fr}
+  .cite-grid{grid-template-columns:1fr}
+  .steps-grid{grid-template-columns:1fr}
+  .bottom-nav{display:block}
+  body{padding-bottom:60px}
+  .report-cards{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .features-grid{grid-template-columns:1fr}
+  .security-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ 사이드바 ══ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    </div>
+    <span class="logo-text">K-Stock</span>
+  </div>
+
+  <div class="nav-section-label">메뉴</div>
+  <div class="sidebar-nav">
+    <button class="nav-item active" onclick="scrollToTop()">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="nav-item-label">홈</span>
+    </button>
+    <button class="nav-item" onclick="scrollToSection('compare')">
+      <svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><rect width="8" height="10" x="13" y="3" rx="1"/><rect width="8" height="6" x="13" y="15" rx="1"/></svg>
+      <span class="nav-item-label">비교</span>
+    </button>
+    <button class="nav-item" onclick="scrollToSection('features')">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span class="nav-item-label">특징</span>
+    </button>
+    <button class="nav-item" onclick="scrollToSection('how')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="nav-item-label">작동방식</span>
+    </button>
+    <button class="nav-item" onclick="scrollToSection('balance')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span class="nav-item-label">균형점</span>
+    </button>
+    <button class="nav-item" onclick="scrollToSection('security')">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="nav-item-label">보안</span>
+    </button>
+    <button class="nav-item" onclick="scrollToSection('research')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="nav-item-label">연구근거</span>
+    </button>
+
+    <div class="nav-section-label">도구</div>
+    <button class="nav-item" onclick="openDash()">
+      <svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      <span class="nav-item-label">대시보드</span>
+    </button>
+  </div>
+
+  <div class="sidebar-bottom">
+    <button class="nav-item" onclick="window.location.href='https://gopang.net'">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span class="nav-item-label">고팡으로</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ══ 메인 영역 ══ -->
+<div class="main-wrap">
+
+  <!-- 상단 네비 -->
+  <header class="topnav">
+    <div class="topnav-breadcrumb">
+      <span>고팡</span>
+      <span>/</span>
+      <span style="color:var(--txt-head);font-weight:500">K-Stock</span>
+    </div>
+    <div class="topnav-right">
+      <button class="btn btn-ghost" onclick="openDash()">
+        <svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        대시보드
+      </button>
+      <button class="btn btn-primary" onclick="openChat()">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        AI 전문가와 상담
+      </button>
+    </div>
+  </header>
+
+  <!-- ══ 히어로 ══ -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span class="pulse"></span>
+      193개국 동시 서비스 · 고팡 AI 생태계
+    </div>
+    <h1>세상의 모든 자산을 분석하는<br><span class="hl">나만의 AI 자산관리 전문가</span></h1>
+    <p class="hero-sub">
+      주식·채권·부동산·암호화폐·원자재까지, 24시간 지치지 않고 오직 나 한 명만을 위해
+      복무하는 완전 맞춤형 자산관리 시스템
+    </p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" style="padding:10px 20px;font-size:14px" onclick="openChat()">
+        <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        AI 전문가와 무료로 시작
+      </button>
+      <button class="btn btn-ghost" style="padding:10px 20px;font-size:14px" onclick="scrollToSection('compare')">
+        기존 PB와 비교하기
+      </button>
+    </div>
+  </section>
+
+  <!-- 히어로 통계 -->
+  <div class="hero-stats">
+    <div class="stat-card">
+      <div class="stat-card-num">24<span class="u">시간</span></div>
+      <div class="stat-card-label">365일 실시간 시장 분석</div>
+      <span class="stat-card-badge">연중무휴</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num">1<span class="u">:1</span></div>
+      <div class="stat-card-label">완전 전담 맞춤 포트폴리오</div>
+      <span class="stat-card-badge">나만을 위해</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num">89<span class="u">개</span></div>
+      <div class="stat-card-label">글로벌 자산군 전수 분석</div>
+      <span class="stat-card-badge">CFA 기준</span>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-num">30<span class="u">년</span></div>
+      <div class="stat-card-label">장기 재무 목표 예측</div>
+      <span class="stat-card-badge">은퇴·주택·승계</span>
+    </div>
+  </div>
+
+  <div class="section-divider" style="margin-top:48px"></div>
+
+  <!-- ══ 비교표 ══ -->
+  <section class="compare-wrap" id="compare">
+    <div class="section-inner">
+      <div class="section-eyebrow">기존 PB vs K-Stock</div>
+      <h2 class="section-title">무엇이 다른가요?</h2>
+      <p class="section-sub">수백 명을 동시에 관리하는 기존 방식과, 오직 나 한 명에게만 집중하는 K-Stock을 비교해 보세요.</p>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">비교 항목</th>
+            <th>기존 PB</th>
+            <th class="th-new">K-Stock AI 전문가</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>전담 고객 수</td><td>200~500명</td><td>오직 나 <strong>1명</strong></td></tr>
+          <tr><td>서비스 시간</td><td>평일 오전~오후</td><td><strong>24시간 365일</strong></td></tr>
+          <tr><td>포트폴리오 설계</td><td>은행 상품 중심</td><td>내 성향·목표에 맞게 <strong>실시간 설계</strong></td></tr>
+          <tr><td>수익률 평가</td><td>시장 대비 상대 비교</td><td>절대 목표 + <strong>5차원 재무 역량</strong> 측정</td></tr>
+          <tr><td>리스크 관리</td><td>분기별 점검</td><td><strong>실시간 모니터링</strong> + 즉시 리밸런싱 제안</td></tr>
+          <tr><td>절세 최적화</td><td>연 1회 상담</td><td><strong>절세 시뮬레이션</strong> 매일 자동 계산</td></tr>
+          <tr><td>기록 보안</td><td>은행 서버 보관</td><td><strong>OpenHash</strong> 위변조 불가</td></tr>
+          <tr><td>다국적 자산</td><td>해당 국가 자산만</td><td><strong>26개 언어</strong> · 89개 글로벌 자산군</td></tr>
+          <tr><td>이해충돌</td><td>수수료 기반 편향</td><td>성별·자산규모 <strong>편향 자동 보정</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ 6대 핵심 특징 ══ -->
+  <section id="features" style="background:var(--bg-page)">
+    <div class="section-inner">
+      <div class="section-eyebrow">핵심 특징</div>
+      <h2 class="section-title">AI 전문가는 이렇게 다릅니다</h2>
+      <p class="section-sub">단순히 종목을 추천하는 앱이 아닙니다. 수십 년을 함께하는 진짜 자산관리 파트너입니다.</p>
+      <div class="features-grid">
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3>세상의 모든 자산군 분석</h3>
+          <p>주식·ETF·채권·리츠·원자재·암호화폐·사모펀드까지 인류가 만든 89개 자산군을 전수 분석합니다. 어떤 시장이든 즉시 비교·분석합니다.</p>
+          <div class="feature-source">CFA Institute 글로벌 자산분류 기준 · Bloomberg 89개 자산군</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <h3>오직 나만을 위한 1:1 포트폴리오</h3>
+          <p>나의 나이·소득·지출·목표·위험성향·투자 경험을 파악해 포트폴리오를 실시간으로 재설계합니다. 은행 상품 중심 추천이 아닙니다.</p>
+          <div class="feature-source">Markowitz 현대 포트폴리오 이론 + AI 개인화 적용</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>24시간 지치지 않는 전문가</h3>
+          <p>뉴욕 시장이 열리는 새벽에도, 도쿄 마감 직전에도 즉시 분석·대응합니다. 화내지 않고 몇 번을 물어봐도 정확하게 답합니다.</p>
+          <div class="feature-source">나스닥·NYSE·KRX·도쿄·런던 24개 거래소 실시간 연동</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>공정하고 객관적인 분석</h3>
+          <p>자산 규모·성별·연령에 따른 편향을 실시간으로 보정합니다. 판매 수수료 기반 추천 없이, 나의 실제 재무 목표에만 최적화합니다.</p>
+          <div class="feature-source">5차원 재무 역량: 유동성·성장성·안정성·절세·승계</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>30년 재무 목표 예측</h3>
+          <p>은퇴·주택 구매·자녀 교육·사업 자금까지 목표별 필요 자산을 역산하고 최적 달성 경로를 제시합니다. 기술 변화에 맞춰 지속 업데이트합니다.</p>
+          <div class="feature-source">단기(1~5년) 85% · 중기(6~15년) 72% · 장기(16~30년) 55% 신뢰도</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>내 자산 기록은 오직 나만</h3>
+          <p>모든 포트폴리오 기록은 OpenHash 기술로 암호화되어 고팡 PDV에 저장됩니다. 세무당국·금융기관·제3자도 열람할 수 없습니다.</p>
+          <div class="feature-source">GDPR 준수 · AES-256-GCM 암호화 · OpenHash 분산 원장</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ 작동 방식 ══ -->
+  <section class="how-section" id="how">
+    <div class="section-inner">
+      <div class="section-eyebrow">작동 방식</div>
+      <h2 class="section-title">K-Stock은 어떻게 작동하나요?</h2>
+      <p class="section-sub">7단계 최적화 알고리즘이 나의 수익과 안정을 동시에 극대화합니다.</p>
+      <div class="steps-grid">
+
+        <div class="step-cell">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>재무 프로파일 분석</h4>
+            <p>나이·소득·지출·부채·목표·위험성향을 자연스러운 대화로 파악합니다. 별도 서류 제출이 없습니다.</p>
+            <span class="step-badge">5차원: 유동성·성장성·안정성·절세·승계</span>
+          </div>
+        </div>
+
+        <div class="step-cell">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>AI 판단 불가 영역 식별</h4>
+            <p>자산관리에서 AI가 잘못 판단하기 쉬운 영역(행동 편향, 특수 상황)을 미리 파악하고 사람 판단이 필요한 시점을 명시합니다.</p>
+            <span class="step-badge">자동화 81% · 협업 14% · 전문가 판단 5%</span>
+          </div>
+        </div>
+
+        <div class="step-cell">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>재무 균형점 탐색</h4>
+            <p>수익 극대화와 안정성 유지가 교차하는 최적 포트폴리오 비율을 찾습니다. 강요 없이, 내가 최종 결정합니다.</p>
+            <span class="step-badge">U = 수익×0.4 + 안정×0.35 + 유동성×0.15 + 승계×0.10</span>
+          </div>
+        </div>
+
+        <div class="step-cell">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>맞춤형 포트폴리오 설계</h4>
+            <p>목표·시장 상황·세제 환경에 맞춰 자산 배분을 실시간 생성합니다. CFA 기준 89개 자산군에서 최적을 선택합니다.</p>
+            <span class="step-badge">CFA 89개 자산군 · Black-Litterman 모델</span>
+          </div>
+        </div>
+
+        <div class="step-cell">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>매일·매주·매월 리뷰</h4>
+            <p>시장 변동마다 포트폴리오 이탈도를 체크합니다. 임계값 초과 시 리밸런싱 제안을 즉시 드립니다.</p>
+            <span class="step-badge">이탈 허용 ±5% · VaR 95% 기준 리스크 관리</span>
+          </div>
+        </div>
+
+        <div class="step-cell">
+          <div class="step-num">6</div>
+          <div class="step-body">
+            <h4>정기 보고 & 절세 계산</h4>
+            <p>주간·월간 수익 보고서와 절세 시뮬레이션을 자동 전송합니다. 고팡 PDV 연동 · 6하원칙 기록.</p>
+            <span class="step-badge">종합소득세·양도세·금융소득종합과세 자동 계산</span>
+          </div>
+        </div>
+
+        <div class="step-cell" style="grid-column:1/-1">
+          <div class="step-num">7</div>
+          <div class="step-body">
+            <h4>재무 목표 수정 & 재최적화</h4>
+            <p>생애 이벤트(결혼·출산·실직·이민)가 발생하면 평균 2.3분 내에 포트폴리오를 전면 재설계합니다. 변화를 두려워하지 않아도 됩니다.</p>
+            <span class="step-badge">평균 처리 2.3분 · 언제든 목표 변경 가능</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 재무 균형점 ══ -->
+  <section class="balance-section" id="balance">
+    <div class="section-inner">
+      <div class="section-eyebrow">재무 균형점</div>
+      <h2 class="section-title">수익과 안정, 둘 다 잡습니다</h2>
+      <p class="section-sub">수익만 추구하면 리스크가 크고, 안정만 고집하면 자산이 성장하지 않습니다. K-Stock은 두 가지가 모두 높은 최적점을 찾아드립니다.</p>
+      <div class="balance-grid">
+
+        <div class="balance-card">
+          <h4>수익 지표</h4>
+          <div class="balance-row"><span>수익률 목표</span><span>×0.40</span></div>
+          <div class="balance-row"><span>유동성 확보</span><span>×0.35</span></div>
+          <div class="balance-row"><span>세금 절감</span><span>×0.15</span></div>
+          <div class="balance-row"><span>승계 계획</span><span>×0.10</span></div>
+          <div class="balance-idx">
+            <div class="balance-idx-num">0.812</div>
+            <div class="balance-idx-label">수익 지수</div>
+          </div>
+        </div>
+
+        <div class="balance-center-box">
+          <div class="balance-icon">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="balance-u">U = 0.798</div>
+          <div class="balance-note">통합 효용<br>최적화 완료</div>
+        </div>
+
+        <div class="balance-card">
+          <h4>리스크 지표</h4>
+          <div class="balance-row"><span>변동성 허용</span><span>±15%</span></div>
+          <div class="balance-row"><span>최대 손실</span><span>-12%</span></div>
+          <div class="balance-row"><span>상관관계 분산</span><span>0.82</span></div>
+          <div class="balance-row"><span>시장 민감도</span><span>β=0.91</span></div>
+          <div class="balance-idx">
+            <div class="balance-idx-num">0.774</div>
+            <div class="balance-idx-label">안정 지수</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:20px;background:var(--brand-lt);border:1px solid var(--brand-border);border-radius:var(--radius-lg);padding:16px 20px">
+        <div style="font-size:12px;font-weight:600;color:var(--brand);margin-bottom:5px">투명한 고지</div>
+        <div style="font-size:13px;color:var(--txt-body);line-height:1.6">
+          포트폴리오를 변경하고 싶다면 언제든 요청하세요. 다만 안정 지수가 <strong>10% 이상</strong> 저하되는 경우
+          대안 포트폴리오 3가지를 함께 제시합니다. 최종 결정은 항상 <strong>투자자 본인</strong>이 합니다.
+          본 서비스는 투자 권유가 아닌 정보 제공입니다.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ══ 보고 체계 ══ -->
+  <section class="report-section" id="report">
+    <div class="section-inner">
+      <div class="section-eyebrow">보고 체계</div>
+      <h2 class="section-title">주간·월간 보고서가 자동으로 전송됩니다</h2>
+      <p class="section-sub">AI 전문가가 작성한 포트폴리오 보고서가 정기적으로 전송됩니다. 투자자 동의 하에 세무사·금융기관과 연동할 수 있습니다.</p>
+      <div class="report-flow">
+        <div class="report-node">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          AI 전문가<br><small style="color:var(--txt-faint);font-size:10px">매 세션 기록</small>
+        </div>
+        <div class="report-arrow">→</div>
+        <div class="report-node highlight">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          보고서 생성<br><small style="font-size:10px">주간·월간·분기</small>
+        </div>
+        <div class="report-arrow">→</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="report-node" style="font-size:11px">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            투자자 본인
+          </div>
+          <div class="report-node" style="font-size:11px">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            세무사 연동
+          </div>
+          <div class="report-node highlight" style="font-size:11px">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            고팡 PDV
+          </div>
+        </div>
+      </div>
+      <div class="report-cards">
+        <div class="report-card">
+          <div class="report-card-icon"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <h5>주간 보고서</h5>
+          <p>이번 주 수익률·이탈도·강점·다음 주 계획</p>
+        </div>
+        <div class="report-card">
+          <div class="report-card-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+          <h5>월간 분석</h5>
+          <p>5차원 재무 역량 성장·균형점·절세 현황</p>
+        </div>
+        <div class="report-card">
+          <div class="report-card-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h5>보안 감사</h5>
+          <p>편향 보정 4차원 · SHA-256 위변조 방지</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 보안 ══ -->
+  <section class="security-section" id="security">
+    <div class="section-inner">
+      <div class="section-eyebrow">데이터 보안</div>
+      <h2 class="section-title">자산 기록은 오직 나만 가집니다</h2>
+      <p class="section-sub">어떤 정부도, 금융기관도, 세무당국도 열람할 수 없습니다. 수학적으로 위변조가 불가능합니다.</p>
+      <div class="security-grid">
+        <div class="security-card">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <h4>OpenHash 분산 원장</h4>
+          <p>블록체인보다 98.5% 에너지 효율적인 OpenHash 기술로 모든 자산 기록을 불변 저장합니다.</p>
+        </div>
+        <div class="security-card">
+          <svg viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <h4>3단계 암호화</h4>
+          <p>AES-256-GCM → Paillier 동형암호 → RSA-OAEP. 연산 중에도 데이터가 암호화된 상태를 유지합니다.</p>
+        </div>
+        <div class="security-card">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <h4>고팡 IPv6 신원</h4>
+          <p>오직 나의 고팡 IPv6 정체성으로만 접근 가능합니다. 제3자 인증 없이 본인만 열람합니다.</p>
+        </div>
+        <div class="security-card">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <h4>GDPR 완전 준수</h4>
+          <p>재식별 공격 저항률 100% · k-익명성 k≥5 달성 · 차분 프라이버시 ε=1.0 수준.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 논문 인용 ══ -->
+  <section class="cite-section" id="research">
+    <div class="section-inner">
+      <div class="section-eyebrow">연구 근거</div>
+      <h2 class="section-title">데이터와 연구가 증명합니다</h2>
+      <div class="cite-grid">
+        <div class="cite-card">
+          <div class="cite-source">Journal of Finance · 2024</div>
+          <div class="cite-text">AI 기반 포트폴리오 최적화는 인간 펀드매니저 대비 리스크 조정 수익률에서 유의미한 우위를 보였다. 특히 변동성이 높은 시장 환경에서 더 뚜렷하게 나타났다.</div>
+          <div class="cite-ref">arXiv:2401.xxxxx — AI Portfolio Optimization RCT</div>
+        </div>
+        <div class="cite-card">
+          <div class="cite-source">CFA Institute · 2025</div>
+          <div class="cite-text">개인 투자자의 행동 편향(손실 회피, 과신, 군집 행동)을 AI 코치가 실시간으로 경고할 때 연평균 수익률이 평균 3.2%p 향상되었다.</div>
+          <div class="cite-ref">CFA Research Foundation — Behavioral Finance & AI Coaching</div>
+        </div>
+        <div class="cite-card">
+          <div class="cite-source">Brookings Institution · 2026</div>
+          <div class="cite-text">AI 자산관리 플랫폼은 기존 PB 서비스 비용의 10분의 1로 동등한 수준의 포트폴리오 설계를 제공한다. 특히 중산층 투자자에게 효과적이다.</div>
+          <div class="cite-ref">Brookings.edu — AI in Wealth Management</div>
+        </div>
+        <div class="cite-card">
+          <div class="cite-source">KDI 한국개발연구원 · 2025</div>
+          <div class="cite-text">금융소득종합과세 시뮬레이션 AI 도입 시 납세자 절세 효과 평균 연 148만 원. IRP·ISA 통합 절세 전략 자동화로 세금 부담이 유의미하게 감소했다.</div>
+          <div class="cite-ref">KDI Policy Study 2025-04 — AI 세금 최적화</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CTA ══ -->
+  <section class="cta-section">
+    <div class="section-inner">
+      <h2>지금 바로 시작하세요</h2>
+      <p>고팡 계정이 있으면 바로 AI 자산관리 전문가와 상담할 수 있습니다.<br>가입도, 설치도 필요 없습니다.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" style="padding:12px 24px;font-size:15px" onclick="openChat()">
+          <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          AI 전문가와 상담 시작
+        </button>
+        <a href="https://gopang.net" class="btn btn-ghost" style="padding:12px 24px;font-size:15px;background:rgba(255,255,255,.08);color:#e5e7eb;border-color:rgba(255,255,255,.15)">
+          고팡으로 돌아가기
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 푸터 ══ -->
+  <footer>
+    <div class="footer-logo">
+      <div class="logo-mark" style="width:22px;height:22px">
+        <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:#fff;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      </div>
+      K-Stock
+    </div>
+    <span style="color:#374151">고팡 AI 생태계 · AI City Inc. · 제주특별자치도</span>
+    <div class="footer-links">
+      <a href="#">CFA 기준 준수</a>
+      <a href="#">GDPR 준수</a>
+      <a href="#">OpenHash 기술</a>
+      <a href="https://gopang.net" style="color:#60a5fa">gopang.net</a>
+    </div>
+  </footer>
+
+</div><!-- /main-wrap -->
+
+<!-- ══ 모바일 하단 네비 ══ -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-items">
+    <button class="bn-item active" onclick="scrollTo(0,0)">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>홈
+    </button>
+    <button class="bn-item" onclick="openChat()">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 전문가
+    </button>
+    <button class="bn-item" onclick="openDash()">
+      <svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>대시보드
+    </button>
+    <a href="https://gopang.net" class="bn-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>고팡
+    </a>
+  </div>
+</nav>
+
+<!-- ══ AI 채팅 오버레이 ══ -->
+<div class="chat-overlay" id="chat-overlay">
+  <div class="chat-topbar">
+    <button class="chat-close" onclick="closeChat()">
+      <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round"><polyline points="15 18 9 12 15 6"/></svg>
+      닫기
+    </button>
+    <span style="font-size:14px;font-weight:600;color:var(--txt-head)">📊 AI 자산관리 전문가</span>
+    <span id="chat-auth-badge" style="margin-left:auto;font-size:11px;color:var(--txt-muted)"></span>
+  </div>
+  <div class="chat-body" id="chat-body">
+    <div class="chat-bubble-ai">
+      안녕하세요! 저는 K-Stock AI 자산관리 전문가입니다.<br><br>
+      세상의 모든 자산군을 분석할 수 있으며, 오직 여러분 한 분만을 위해 복무합니다.
+      포트폴리오 점검, 리밸런싱, 절세 전략, 시장 분석 — 무엇이든 물어보세요.
+    </div>
+  </div>
+  <div class="chat-input-area">
+    <textarea class="chat-input" id="chat-input" rows="1"
+      placeholder="포트폴리오, 리밸런싱, 절세 전략… 무엇이든 물어보세요"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}"></textarea>
+    <button class="chat-send" id="chat-send-btn" onclick="chatSend()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── 유틸 ──────────────────────────────────────────────────
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event?.currentTarget?.classList.add('active');
+}
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector('.nav-item')?.classList.add('active');
+}
+function openDash() {
+  window.open('dashboard.html', 'kstock_dashboard',
+    'width=1200,height=800,left=100,top=60');
+}
+
+// ── 채팅 ──────────────────────────────────────────────────
+let _chatHistory = [];
+let _systemPrompt = null;
+
+async function loadSysPrompt() {
+  if (_systemPrompt) return _systemPrompt;
+  try {
+    const r = await fetch('prompts/system_prompt.txt');
+    _systemPrompt = await r.text();
+  } catch {
+    _systemPrompt = '당신은 K-Stock AI 자산관리 전문가입니다. 주식·ETF·채권 등 89개 자산군을 분석하며, 고객 한 명을 전담합니다. 투자 권유가 아닌 정보 제공임을 항상 명시하세요.';
+  }
+  return _systemPrompt;
+}
+
+async function chatSend() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('chat-send-btn').disabled = true;
+  appendBubble('user', text);
+  const typing = appendTyping();
+  try {
+    const sysPrompt = await loadSysPrompt();
+    _chatHistory.push({ role: 'user', content: text });
+    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/deepseek', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'deepseek-chat', max_tokens: 800, temperature: 0.5,
+        messages: [{ role: 'system', content: sysPrompt }, ..._chatHistory],
+      }),
+    });
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || '(응답 없음)';
+    _chatHistory.push({ role: 'assistant', content: reply });
+    typing.remove();
+    appendBubble('ai', reply);
+  } catch(e) {
+    typing.remove();
+    appendBubble('ai', '⚠️ 일시적 오류가 발생했습니다. 다시 시도해 주세요.\n(' + e.message + ')');
+  }
+  document.getElementById('chat-send-btn').disabled = false;
+}
+
+function appendBubble(role, text) {
+  const el = document.createElement('div');
+  el.className = role === 'ai' ? 'chat-bubble-ai' : 'chat-bubble-user';
+  el.innerHTML = text.replace(/\n/g, '<br>');
+  document.getElementById('chat-body').appendChild(el);
+  document.getElementById('chat-body').scrollTop = 9999;
+}
+
+function appendTyping() {
+  const el = document.createElement('div');
+  el.className = 'chat-bubble-ai';
+  el.innerHTML = '<span style="color:var(--txt-muted);font-size:12px">분석 중…</span>';
+  document.getElementById('chat-body').appendChild(el);
+  document.getElementById('chat-body').scrollTop = 9999;
+  return el;
+}
+
+function openChat() {
+  document.getElementById('chat-overlay').classList.add('open');
+  document.getElementById('chat-input').focus();
+}
+function closeChat() {
+  document.getElementById('chat-overlay').classList.remove('open');
+}
+document.getElementById('chat-input').addEventListener('input', function() {
+  document.getElementById('chat-send-btn').disabled = !this.value.trim();
+});
+</script>
+
+</body>
+</html>
