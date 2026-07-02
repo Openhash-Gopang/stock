@@ -504,7 +504,7 @@ let _gwpContext = null;
 
 const _params = new URLSearchParams(location.search);
 const _isGwp  = _params.get('gwp') === '1';
-_gwpOrigin = _params.get('origin') || 'https://gopang.net';
+_gwpOrigin = _params.get('origin') || 'https://hondi.net';
 try { _gwpContext = _params.get('ctx') ? decodeURIComponent(_params.get('ctx')) : null; }
 catch { _gwpContext = null; }
 
@@ -691,7 +691,7 @@ async function sendPDVReport() {
         svc: 'stock', type: 'stock_session_complete',
         who: (typeof _user !== 'undefined' && _user?.ipv6) ? _user.ipv6 : 'anonymous',
         when: new Date().toISOString(),
-        where: 'stock.gopang.net',
+        where: 'stock.hondi.net',
         what: { session_minutes: mins, message_count: _sessionMsgCnt, assets, chat_length: _chatHistory.length },
         how: { method: 'AI 자산관리 전문가 채팅 (DeepSeek)', device: 'mobile' },
         why: { goal: '개인 맞춤형 자산관리', triggered: _gwpContext ? 'gopang_gwp' : 'direct', gwp_ctx: _gwpContext || null },
@@ -743,7 +743,7 @@ async function finishAndReturn() {
     if (_isGwp && window.opener) {
       window.opener.postMessage({ type: 'GWP_CLOSE', svc: 'stock' }, _gwpOrigin);
     } else {
-      window.location.href = 'https://gopang.net';
+      window.location.href = 'https://hondi.net';
     }
   }, 1500);
 }
@@ -753,7 +753,7 @@ function goBack() {
     if (_isGwp && window.opener) {
       window.opener.postMessage({ type: 'GWP_CLOSE', svc: 'stock' }, _gwpOrigin);
     } else {
-      window.location.href = 'https://gopang.net';
+      window.location.href = 'https://hondi.net';
     }
     return;
   }

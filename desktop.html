@@ -587,7 +587,7 @@ footer{
     </button>
   </div>
   <div class="ib-bottom">
-    <button class="ib-btn" title="고팡으로" onclick="location.href='https://gopang.net'">
+    <button class="ib-btn" title="고팡으로" onclick="location.href='https://hondi.net'">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
     </button>
     <button class="ib-btn" title="설정">
@@ -631,7 +631,7 @@ footer{
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 전문가 상담
       </div>
       <div class="sp-divider"></div>
-      <div class="sp-item" onclick="location.href='https://gopang.net'">
+      <div class="sp-item" onclick="location.href='https://hondi.net'">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>고팡으로
       </div>
     </div>
@@ -960,7 +960,7 @@ footer{
           <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
           AI 전문가와 상담 시작
         </button>
-        <a href="https://gopang.net" class="btn" style="padding:9px 20px;font-size:13px;background:var(--bg);color:var(--txt-1);border:1px solid var(--border)">
+        <a href="https://hondi.net" class="btn" style="padding:9px 20px;font-size:13px;background:var(--bg);color:var(--txt-1);border:1px solid var(--border)">
           고팡으로 돌아가기
         </a>
       </div>
@@ -978,7 +978,7 @@ footer{
       <a href="#">CFA 기준</a>
       <a href="#">GDPR</a>
       <a href="#">OpenHash</a>
-      <a href="https://gopang.net" style="color:#60a5fa">gopang.net</a>
+      <a href="https://hondi.net" style="color:#60a5fa">hondi.net</a>
     </div>
   </footer>
 
@@ -990,7 +990,7 @@ footer{
     <button class="bn-item active" onclick="window.scrollTo({top:0,behavior:'smooth'})"><svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>홈</button>
     <button class="bn-item" onclick="openChat()"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 전문가</button>
     <button class="bn-item" onclick="openDash()"><svg viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>대시보드</button>
-    <a href="https://gopang.net" class="bn-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>고팡</a>
+    <a href="https://hondi.net" class="bn-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>고팡</a>
   </div>
 </nav>
 
@@ -1098,7 +1098,7 @@ function appendTyping(){
   const params  = new URLSearchParams(location.search);
   const gwpCtx  = params.get('ctx') ? decodeURIComponent(params.get('ctx')) : null;
   const isGwp   = params.get('gwp') === '1';
-  const gwpOrigin = params.get('origin') || 'https://gopang.net';
+  const gwpOrigin = params.get('origin') || 'https://hondi.net';
 
   if (gwpCtx) {
     // GWP에서 전달된 컨텍스트가 있으면 채팅 오버레이 자동 오픈
@@ -1129,7 +1129,7 @@ function chatSend_withText(text) {
 async function notifyGwpComplete(sessionData) {
   if (!window._stockIsGwp) return;
   const ipv6    = window._stockUser?.ipv6;
-  const origin  = window._stockGwpOrigin || 'https://gopang.net';
+  const origin  = window._stockGwpOrigin || 'https://hondi.net';
 
   // PDV 전송 (report.js 사용)
   if (ipv6 && typeof generateWeeklyReport === 'function') {

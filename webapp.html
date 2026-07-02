@@ -13,7 +13,7 @@
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/report.js"></script>
-<script type="module" src="https://gopang.net/auth/subsystem-auth.js"></script>
+<script type="module" src="https://hondi.net/auth/subsystem-auth.js"></script>
 <style>
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -508,7 +508,7 @@ function _recordPdv(userMsg) {
     const user_guid=token.ipv6||'anonymous';
     fetch(`${PROXY}/pdv_log`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({user_guid,source:'kstock',report:{pdv_6w:{
-        who:user_guid,when:new Date().toISOString(),where:'https://stock.gopang.net/webapp.html',
+        who:user_guid,when:new Date().toISOString(),where:'https://stock.hondi.net/webapp.html',
         what:'K-Stock AI 투자 상담',how:`질문: ${(userMsg||'').slice(0,60)}`,why:'투자 포트폴리오 분석 및 시장 브리핑'
       }}})
     }).catch(()=>{});
@@ -620,7 +620,7 @@ async function sendPDVReport() {
         svc: 'stock', type: 'stock_session_complete',
         who: (typeof _user !== 'undefined' && _user?.ipv6) ? _user.ipv6 : 'anonymous',
         when: new Date().toISOString(),
-        where: 'stock.gopang.net',
+        where: 'stock.hondi.net',
         what: { session_minutes: mins, message_count: _sessionMsgCnt, assets, chat_length: _chatHistory.length },
         how: { method: 'AI 자산관리 전문가 채팅 (DeepSeek)', device: 'mobile' },
         why: { goal: '개인 맞춤형 자산관리', triggered: _gwpContext ? 'gopang_gwp' : 'direct', gwp_ctx: _gwpContext || null },
@@ -670,7 +670,7 @@ async function finishAndReturn() {
     if (_isGwp && window.opener) {
       window.opener.postMessage({ type: 'GWP_CLOSE', svc: 'stock' }, _gwpOrigin);
     } else {
-      window.location.href = 'https://gopang.net';
+      window.location.href = 'https://hondi.net';
     }
   }, 1500);
 }
@@ -698,7 +698,7 @@ function goBack() {
     if (_isGwp && window.opener) {
       window.opener.postMessage({ type: 'GWP_CLOSE', svc: 'stock' }, _gwpOrigin);
     } else {
-      window.location.href = 'https://gopang.net';
+      window.location.href = 'https://hondi.net';
     }
     return;
   }

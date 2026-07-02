@@ -9,8 +9,8 @@ let _user = null;
 async function _loadSSO() {
   if (gopangAuth) return;
   try {
-    // gopang.net에서 중앙 SSO 라이브러리 동적 로드
-    const mod = await import('https://gopang.net/auth/gopang-sso.js');
+    // hondi.net에서 중앙 SSO 라이브러리 동적 로드
+    const mod = await import('https://hondi.net/auth/gopang-sso.js');
     gopangAuth = mod.gopangAuth;
   } catch(e) {
     console.warn('[Auth] gopang-sso.js 로드 실패, 로컬 폴백:', e.message);
@@ -66,11 +66,11 @@ function showAuthPanel() {
       <div style="font-size:16px;font-weight:700;color:var(--txt-1,#1c1c1c);margin-bottom:4px">고팡 인증</div>
     </div>
     <div style="font-size:12px;color:var(--txt-2,#6b7280);line-height:1.8;margin-bottom:16px">
-      K-Stock은 고팡(gopang.net) 인증을 사용합니다.<br>
+      K-Stock은 고팡(hondi.net) 인증을 사용합니다.<br>
       현재 레벨: <strong style="color:#2563eb">${_user?.level || 'L0'}</strong>
       &nbsp;|&nbsp; IPv6: <code style="font-size:10px;color:var(--txt-3,#9ca3af)">${(_user?.ipv6||'').slice(0,24)}…</code>
     </div>
-    <a href="https://gopang.net" target="_blank"
+    <a href="https://hondi.net" target="_blank"
        style="display:block;text-align:center;padding:9px;border-radius:6px;background:#2563eb;color:#fff;font-size:13px;font-weight:600;text-decoration:none;margin-bottom:8px">
        고팡 앱 열기
     </a>
@@ -136,9 +136,9 @@ function _showLoginPrompt(level) {
         <div style="font-size:24px;margin-bottom:8px">🔒</div>
         <div style="font-size:15px;font-weight:700;margin-bottom:8px">고팡 인증 필요</div>
         <div style="font-size:12px;color:#6b7280;margin-bottom:16px">
-          K-Stock은 고팡(gopang.net) 인증을 사용합니다.${level ? '<br>' + level + ' 인증이 필요합니다.' : ''}
+          K-Stock은 고팡(hondi.net) 인증을 사용합니다.${level ? '<br>' + level + ' 인증이 필요합니다.' : ''}
         </div>
-        <a href="https://gopang.net" target="_blank" style="display:block;padding:10px;border-radius:8px;background:#2563eb;color:#fff;font-size:13px;font-weight:600;text-decoration:none;margin-bottom:8px">gopang.net 열기</a>
+        <a href="https://hondi.net" target="_blank" style="display:block;padding:10px;border-radius:8px;background:#2563eb;color:#fff;font-size:13px;font-weight:600;text-decoration:none;margin-bottom:8px">hondi.net 열기</a>
         <button onclick="location.reload()" style="width:100%;padding:9px;border-radius:8px;background:none;border:1px solid #e5e7eb;font-size:13px;color:#6b7280;cursor:pointer">인증 후 새로고침</button>
       </div>`;
     document.body.appendChild(overlay);
@@ -151,12 +151,12 @@ function _showLoginPrompt(level) {
       <div style="font-size:16px;font-weight:700;color:var(--txt-1,#1c1c1c);margin-bottom:4px">고팡 인증 필요</div>
     </div>
     <div style="font-size:12px;color:var(--txt-2,#6b7280);line-height:1.7;margin-bottom:16px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px">
-      ⚠️ K-Stock은 고팡(gopang.net) 인증을 사용합니다.
+      ⚠️ K-Stock은 고팡(hondi.net) 인증을 사용합니다.
       ${level ? '<br><strong>' + level + '</strong> 인증이 필요합니다.' : ''}
     </div>
-    <a href="https://gopang.net" target="_blank"
+    <a href="https://hondi.net" target="_blank"
        style="display:block;text-align:center;padding:9px;border-radius:6px;background:#2563eb;color:#fff;font-size:13px;font-weight:600;text-decoration:none;margin-bottom:8px">
-       gopang.net 열기
+       hondi.net 열기
     </a>
     <button onclick="location.reload()"
        style="display:block;width:100%;padding:8px;border-radius:6px;background:none;border:1px solid var(--border,#e5e7eb);font-size:13px;color:var(--txt-2,#6b7280);cursor:pointer">

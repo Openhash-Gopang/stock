@@ -12,7 +12,7 @@
 // 고팡 PDV 6하원칙 매핑 (school/report.js와 동일 패턴):
 //   누가  — user.ipv6 (고팡 IPv6 신원)
 //   언제  — 보고서 생성 시각
-//   어디서 — stock.gopang.net
+//   어디서 — stock.hondi.net
 //   무엇을 — 포트폴리오 성과·리밸런싱·절세 분석
 //   어떻게 — AI 자산관리 전문가 상담 + DeepSeek + Supabase
 //   왜    — 재무 균형점 달성 + 절세 최적화
@@ -236,7 +236,7 @@ async function buildWeeklyReport(ipv6) {
     pdv_6w: {
       who:   profile.ipv6,
       when:  new Date().toISOString(),
-      where: 'stock.gopang.net',
+      where: 'stock.hondi.net',
       what:  `주간 자산관리: ${sessions.length}세션 / ${totalMinutes}분 / ₩${(totalValueKrw/1e6).toFixed(1)}M / 리밸런싱 ${rebalanceNeeded.length}건`,
       how:   'AI 자산관리 전문가 상담 (DeepSeek V3) + Supabase 포트폴리오 데이터',
       why:   `재무 균형점(U=${(profile.utility_u||0).toFixed(3)}) 달성 + 절세 최적화`,
@@ -368,7 +368,7 @@ async function buildMonthlyReport(ipv6) {
     pdv_6w: {
       who:   profile.ipv6,
       when:  new Date().toISOString(),
-      where: 'stock.gopang.net',
+      where: 'stock.hondi.net',
       what:  `월간 자산 분석: ${sessions.length}세션 / ${Math.round(totalHours*10)/10}h / 5차원 재무 역량 갱신`,
       how:   'AI 자산관리 전문가 상담 + DeepSeek V3 + Supabase 포트폴리오',
       why:   `재무 균형점(U=${utilityU.toFixed(3)}) 최적화 + 절세 효과 + 고팡 PDV 기록`,
@@ -411,7 +411,7 @@ async function sendToPDV(report) {
             period_end:   report.period?.end,
           },
           where: {
-            svc_url: 'https://stock.gopang.net',
+            svc_url: 'https://stock.hondi.net',
             label:   report.pdv_6w.where,
           },
           what: {

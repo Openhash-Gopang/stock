@@ -9,7 +9,7 @@ const HDR = { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON };
 const SYSTEM_PROMPT_URL = '/prompts/system_prompt.txt';
 
 // 서비스 식별자
-// CNAME: stock.gopang.net → hostname.replace('.gopang.net','') = 'stock'
+// CNAME: stock.hondi.net → hostname.replace('.hondi.net','') = 'stock'
 // gopang-sso.js _detectServiceId() 와 자동 일치
 const SVC_ID   = 'stock';
 const PROXY    = 'https://gopang-proxy.tensor-city.workers.dev';
