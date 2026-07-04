@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap">
 <script src="/gopang-wallet.js"></script>
+<script src="/pdv-history-client.js"></script>
 <script src="js/config.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/report.js"></script>
@@ -395,7 +396,10 @@ let _isGwp = false;
 
 
 const PROXY = 'https://hondi-proxy.tensor-city.workers.dev';
-const SP_URL = 'https://raw.githubusercontent.com/Openhash-Gopang/stock/main/prompts/SP-KSTOCK-v1_0.txt';
+// 2026-07-04 수정(긴급): 기존 URL이 존재하지 않는 'SP-KSTOCK-v1_0.txt'를 가리켜
+// fetch가 항상 404 → 아래 한 줄짜리 SP_FALLBACK으로만 서비스되고 있었다.
+// 실제 저장소에 있는 진짜 K-Stock 시스템 프롬프트는 prompts/system_prompt.txt.
+const SP_URL = 'https://raw.githubusercontent.com/Openhash-Gopang/stock/main/prompts/system_prompt.txt';
 const SP_FALLBACK = `K-Stock AI 전문가. 주식·ETF·채권·투자 분석 전문. GDC 기반 투자 포트폴리오 최적화, 실시간 시장 브리핑, 리스크 분석 제공.`;
 const CFG = { systemPrompt: null };
 
@@ -418,7 +422,7 @@ async function loadSystemPrompt() {
   return CFG.systemPrompt;
 }
 
-async function callAI(messages) {
+async function callAIRaw(messages) {
   const sp = await loadSystemPrompt();
   try {
     const r = await fetch(`${PROXY}/ai/chat`, {
@@ -437,6 +441,37 @@ async function callAI(messages) {
     const d2 = await r2.json();
     return d2.content?.find(c=>c.type==='text')?.text || '오류가 발생했습니다.';
   }
+}
+
+// 2026-07-04: PDV_HISTORY_REQUEST 가로채기 계층 (K-Tax/K-School과 동일 패턴).
+async function callAI(messages) {
+  const raw = await callAIRaw(messages);
+  if (!window.PdvHistoryClient || !/\[PDV(?:_HISTORY)?_REQUEST:/.test(raw)) return raw;
+
+  const { interceptPdvTags } = window.PdvHistoryClient;
+  const r = await interceptPdvTags(raw, {
+    svc: 'kstock', ipv6: (typeof _user !== 'undefined' && _user?.ipv6) ? _user.ipv6 : 'anonymous',
+    // TODO(확인 필요): 다른 저장소 통합과 동일한 임시 조치 — 실제 로그인
+    // 세션의 인증 레벨을 반영하도록 배포 전 교체할 것.
+    authToken: { exp: Math.floor(Date.now()/1000) + 3600, level: 'L1' },
+    resumeContext: { messages },
+  });
+  if (!r) return raw;
+  if (r.redirecting) return raw;
+
+  const summaryText = (r.results || []).map(x => {
+    if (x.error) return `(${x.scope} 이력 조회 실패: ${x.error})`;
+    if (!x.summary || x.summary.available === false) return `(${x.scope} 이전 기록 없음)`;
+    return `(${x.scope} 이전 기록: ${JSON.stringify(x.summary)})`;
+  }).join('\n');
+
+  const cleaned = raw.replace(/\[PDV(?:_HISTORY)?_REQUEST:[^\]]+\]/g, '').trim();
+  const followUp = [
+    ...messages,
+    { role: 'assistant', content: cleaned || '(이전 기록을 조회하겠습니다)' },
+    { role: 'user', content: `[시스템: PDV 조회 결과]\n${summaryText}\n\n위 조회 결과를 반영해서 답변을 이어가 주세요.` },
+  ];
+  return callAIRaw(followUp);
 }
 
 function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
@@ -494,6 +529,28 @@ async function mobSend() {
   } catch { document.getElementById(tid)?.remove(); appendMsg('ai','오류가 발생했습니다.'); }
   btn.disabled=false;
 }
+
+// 2026-07-04: consent.html에서 돌아온 직후인지 확인 — PDV_HISTORY_REQUEST 파일럿.
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!window.PdvHistoryClient) return;
+  const back = window.PdvHistoryClient.checkPdvConsentReturn();
+  if (!back) return;
+  if (back.denied) {
+    appendMsg('ai', '이전 기록 조회에 동의하지 않으셨네요. 처음부터 다시 도와드릴게요.');
+    return;
+  }
+  if (back.granted && back.resumeContext?.messages) {
+    appendMsg('ai', '동의 확인했습니다. 이전 기록을 반영해서 이어가겠습니다...');
+    hist = back.resumeContext.messages;
+    try {
+      const resumed = await callAI(hist);
+      appendMsg('ai', resumed);
+      hist.push({role:'assistant',content:resumed});
+    } catch (e) {
+      appendMsg('ai', `이어서 진행하는 중 오류가 발생했습니다: ${e.message}`);
+    }
+  }
+});
 
 function qs(s) {
   const inp=document.getElementById('mob-input');
