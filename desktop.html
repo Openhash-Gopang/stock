@@ -1050,7 +1050,7 @@ async function chatSend() {
       catch { _prompt='당신은 K-Stock AI 자산관리 전문가입니다. 주식·ETF·채권 등 89개 자산군을 분석하며 고객 한 명을 전담합니다. 투자 권유가 아닌 정보 제공임을 항상 명시하세요.'; }
     }
     _hist.push({role:'user',content:txt});
-    const res = await fetch('https://gopang-proxy.tensor-city.workers.dev/deepseek',{
+    const res = await fetch('https://hondi-proxy.tensor-city.workers.dev/deepseek',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'deepseek-chat',max_tokens:800,temperature:0.5,
         messages:[{role:'system',content:_prompt},..._hist]})

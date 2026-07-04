@@ -597,7 +597,7 @@ async function callAI(userMsg) {
   const cfg = window.KSTOCK_CONFIG || {};
   const sysPrompt = await loadPrompt();
   _chatHistory.push({ role: 'user', content: userMsg });
-  const res = await fetch(cfg.deepseekEndpoint || 'https://gopang-proxy.tensor-city.workers.dev/deepseek', {
+  const res = await fetch(cfg.deepseekEndpoint || 'https://hondi-proxy.tensor-city.workers.dev/deepseek', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -684,7 +684,7 @@ async function sendPDVReport() {
   const mins = Math.round((new Date() - _sessionStart) / 60000);
   const assets = extractAssets();
   try {
-    const res = await fetch(cfg.pdvEndpoint || 'https://gopang-proxy.tensor-city.workers.dev/pdv/report', {
+    const res = await fetch(cfg.pdvEndpoint || 'https://hondi-proxy.tensor-city.workers.dev/pdv/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

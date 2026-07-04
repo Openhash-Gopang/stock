@@ -12,7 +12,7 @@ const SYSTEM_PROMPT_URL = '/prompts/system_prompt.txt';
 // CNAME: stock.hondi.net → hostname.replace('.hondi.net','') = 'stock'
 // gopang-sso.js _detectServiceId() 와 자동 일치
 const SVC_ID   = 'stock';
-const PROXY    = 'https://gopang-proxy.tensor-city.workers.dev';
+const PROXY    = 'https://hondi-proxy.tensor-city.workers.dev';
 const REPORT_V = '1.0';
 
 // 자산군 정의 (school SCHOOL_STAGES 대응)
