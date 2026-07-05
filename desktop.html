@@ -1053,6 +1053,7 @@ async function chatSend() {
     const res = await fetch('https://hondi-proxy.tensor-city.workers.dev/deepseek',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'deepseek-chat',max_tokens:800,temperature:0.5,
+        service_id:'kfinance', // 2026-07-05: worker.js가 UNIVERSAL 레이어 강제 주입
         messages:[{role:'system',content:_prompt},..._hist]})
     });
     const data = await res.json();
