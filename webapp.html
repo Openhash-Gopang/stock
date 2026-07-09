@@ -728,6 +728,23 @@ async function finishAndReturn() {
     try {
       window.opener.postMessage({ type: 'GWP_SESSION_COMPLETE', svc: 'stock', pdv_id: pdvId, minutes: mins, assets: extractAssets() }, _gwpOrigin);
     } catch(e) {}
+
+    // ── 실제 GWP_DONE 보고(2026-07-10 신설) ──────────────────────
+    // 위 GWP_SESSION_COMPLETE는 engine.js가 처리하는 타입이 아니라서
+    // (case 'GWP_DONE':만 존재) 지금까지 AI 비서에게 아무 것도 전달되지
+    // 않고 있었다. 기존 발신은 그대로 두고 올바른 타입을 추가로 보낸다.
+    const _ipv6 = (typeof _user !== 'undefined' && _user?.ipv6) ? _user.ipv6 : 'anonymous';
+    import('https://hondi.net/src/gopang/gwp/gwp-report-client.js')
+      .then(({ reportGwpSessionEnd }) => reportGwpSessionEnd({
+        agencyId: 'stock',
+        guid: _ipv6,
+        messages: hist,
+        resultText: `상담 ${mins}분, 대화 ${_sessionMsgCnt}회, 주요 주제: ${extractAssets()}`,
+        summaryLine: 'K-Stock 자산관리 상담 완료: ' + extractAssets(),
+        gwpMode: _isGwp,
+        gwpOrigin: _gwpOrigin,
+      }))
+      .catch(() => {});
   }
 
   setTimeout(() => {
