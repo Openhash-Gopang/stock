@@ -424,13 +424,34 @@ async function loadSystemPrompt() {
 
 async function callAIRaw(messages) {
   const sp = await loadSystemPrompt();
+  // ★ 2026-07-11: 기존엔 /ai/chat(handleAIChat, 순수 패스스루)을 호출해
+  // 서버측 공통규칙 강제주입이 전혀 안 되고 있었다(클라이언트에서 로드하는
+  // UNIVERSAL-INTEGRITY는 위 loadSystemPrompt()가 이미 붙이고 있었지만,
+  // UNIVERSAL-common은 빠져 있었고 클라이언트 로드는 조작·누락 가능해
+  // SP-COMMON-05 H2 원칙에 안 맞았다). worker.js의 UNIVERSAL_FORCED_K_SERVICES에
+  // 'kfinance'(K-Stock의 gwp_registry 등록 id — 'kstock'은 별칭)가 이미
+  // 등록돼 있으므로, /deepseek(callDeepSeek)로 service_id='kfinance'를
+  // 실어 보내면 서버가 UNIVERSAL-INTEGRITY + UNIVERSAL-common을 자동으로
+  // 최상단에 붙여준다(클라이언트가 붙인 것과 중복되어도 무해 — callDeepSeek는
+  // system 필드가 아니라 messages 배열 맨 앞에 별도 system 메시지를 추가한다).
+  let guid = 'anonymous';
+  try { guid = JSON.parse(sessionStorage.getItem('gopang_sso_token') || '{}').ipv6 || 'anonymous'; } catch (e) {}
   try {
-    const r = await fetch(`${PROXY}/ai/chat`, {
+    const r = await fetch(`${PROXY}/deepseek`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ provider:'deepseek', model:'deepseek-chat', system:sp, messages:messages.slice(-10), max_tokens:2000 }),
+      // ★ system을 별도 필드로 안 보내고 messages 배열 맨 앞에 system role로 넣는다 —
+      // callDeepSeek는 messages가 배열이면(항상 그렇다) 주입 텍스트를 messages 앞에만
+      // 붙이고 별도 system 필드는 건드리지 않는다. 그 필드로 sp를 보내면 실제 DeepSeek
+      // API가 top-level system 필드를 읽지 않아 K-Stock 고유 지시문이 조용히 유실된다.
+      body: JSON.stringify({ model:'deepseek-chat', service_id:'kfinance', guid, messages:[{role:'system',content:sp}, ...messages.slice(-10)], max_tokens:2000 }),
     });
     if (!r.ok) throw new Error(`proxy ${r.status}`);
-    const d = await r.json(); return d.content || '잠시 후 다시 시도해 주세요.';
+    const d = await r.json();
+    // ★ /deepseek(callDeepSeek)는 /ai/chat과 달리 응답을 재가공하지 않고
+    // OpenAI 호환 원본 형식을 그대로 반환한다 — d.content가 아니라
+    // d.choices[0].message.content. (예전 /ai/chat은 handleAIChat이
+    // {content, provider, model}로 재가공해 줬었다.)
+    return d.choices?.[0]?.message?.content || '잠시 후 다시 시도해 주세요.';
   } catch(e) {
     console.warn('[K-Stock] DeepSeek → Claude:', e.message);
     const r2 = await fetch('https://api.anthropic.com/v1/messages', {
