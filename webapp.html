@@ -403,6 +403,20 @@ const SP_URL = 'https://raw.githubusercontent.com/Openhash-Gopang/stock/main/pro
 const SP_FALLBACK = `K-Stock AI 전문가. 주식·ETF·채권·투자 분석 전문. GDC 기반 투자 포트폴리오 최적화, 실시간 시장 브리핑, 리스크 분석 제공.`;
 const CFG = { systemPrompt: null };
 
+// ★ 2026-07-30 신설 — GWP facts(currentLocation) 파싱 (주피터 지시 —
+// gov 도메인을 넘어 서비스 전반으로 확장). callDeepSeek가 이미
+// currentLocation을 받으면 강제 주입하도록 되어 있다(2026-07-30).
+let GWP_FACTS = null;
+try {
+  const _qs = new URLSearchParams(location.search);
+  if (_qs.get('facts')) {
+    const raw = (_qs.get('facts_enc') === 'b64')
+      ? decodeURIComponent(escape(atob(_qs.get('facts'))))
+      : decodeURIComponent(_qs.get('facts'));
+    GWP_FACTS = JSON.parse(raw);
+  }
+} catch (e) { console.warn('[K-Stock] facts 파싱 실패(무시):', e.message); }
+
 async function loadSystemPrompt() {
   if (CFG.systemPrompt) return CFG.systemPrompt;
   let universalIntegrity = '';
@@ -443,7 +457,7 @@ async function callAIRaw(messages) {
       // callDeepSeek는 messages가 배열이면(항상 그렇다) 주입 텍스트를 messages 앞에만
       // 붙이고 별도 system 필드는 건드리지 않는다. 그 필드로 sp를 보내면 실제 DeepSeek
       // API가 top-level system 필드를 읽지 않아 K-Stock 고유 지시문이 조용히 유실된다.
-      body: JSON.stringify({ model:'deepseek-chat', service_id:'kfinance', guid, messages:[{role:'system',content:sp}, ...messages.slice(-10)], max_tokens:2000 }),
+      body: JSON.stringify({ model:'deepseek-chat', service_id:'kfinance', guid, messages:[{role:'system',content:sp}, ...messages.slice(-10)], max_tokens:2000, currentLocation: GWP_FACTS?.currentLocation || null }),
     });
     if (!r.ok) throw new Error(`proxy ${r.status}`);
     const d = await r.json();
