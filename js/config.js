@@ -1,8 +1,8 @@
 // ── K-Stock 설정 ─────────────────────────────────────────
 // school/config.js 구조 완전 동일, 도메인만 stock으로 교체
 
-const SUPA_URL  = 'https://ebbecjfrwaswbdybbgiu.supabase.co';
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmVjamZyd2Fzd2JkeWJiZ2l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjE5ODQsImV4cCI6MjA5NTEzNzk4NH0.H2ahQKtWdSke04Pdi3hDY86pdTx7UUKPUpQMlS_zciA';
+const SUPA_URL  = '' /* -2026-08-12 secret removed, see README_SECRETS_INCIDENT.md */;
+const SUPA_ANON = '' /* -2026-08-12 secret removed, rotate + migrate to PocketBase, see README_SECRETS_INCIDENT.md */;
 const HDR = { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON };
 
 // AI 자산관리 전문가 시스템 프롬프트 경로
