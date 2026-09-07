@@ -456,6 +456,11 @@ async function callAIRaw(messages) {
   // system 필드가 아니라 messages 배열 맨 앞에 별도 system 메시지를 추가한다).
   let guid = 'anonymous';
   try { guid = JSON.parse(sessionStorage.getItem('gopang_sso_token') || '{}').ipv6 || 'anonymous'; } catch (e) {}
+  // 2026-09-07 신설 — gopang_sso_token은 오늘 제거된 구 subsystem-auth.js가
+  // 로그인 성공 시에만 채워주던 값이라, 그 스크립트가 없는 지금은 영원히
+  // 비어 'anonymous'로만 떨어진다(회귀). k-service-auth-client.js 로그인
+  // 상태를 phone_verify_token으로 대신 실어 보낸다.
+  const _stockPvt = (guid === 'anonymous' && window.KAuth && KAuth.hasValidLogin()) ? KAuth.getToken() : null;
   try {
     const r = await fetch(`${PROXY}/deepseek`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -463,7 +468,7 @@ async function callAIRaw(messages) {
       // callDeepSeek는 messages가 배열이면(항상 그렇다) 주입 텍스트를 messages 앞에만
       // 붙이고 별도 system 필드는 건드리지 않는다. 그 필드로 sp를 보내면 실제 DeepSeek
       // API가 top-level system 필드를 읽지 않아 K-Stock 고유 지시문이 조용히 유실된다.
-      body: JSON.stringify({ model:'deepseek-chat', service_id:'kfinance', guid, messages:[{role:'system',content:sp}, ...messages.slice(-10)], max_tokens:2000, currentLocation: GWP_FACTS?.currentLocation || null }),
+      body: JSON.stringify({ model:'deepseek-chat', service_id:'kfinance', guid, phone_verify_token: _stockPvt, messages:[{role:'system',content:sp}, ...messages.slice(-10)], max_tokens:2000, currentLocation: GWP_FACTS?.currentLocation || null }),
     });
     if (!r.ok) throw new Error(`proxy ${r.status}`);
     const d = await r.json();
